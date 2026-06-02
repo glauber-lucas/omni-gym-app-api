@@ -1,0 +1,14 @@
+allowBuilds:
+  unrs-resolver@1.11.1: true
+blockExoticSubdeps: true
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+nodeLinker: isolated
+strictDepBuilds: true
+trustPolicy: no-downgrade
+savePrefix: ""
+verifyDepsBeforeRun: error
+lockfileIncludeTarballUrl: true
+pmOnFail: error
+

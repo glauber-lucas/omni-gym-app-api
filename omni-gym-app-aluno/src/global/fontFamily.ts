@@ -1,0 +1,21 @@
+export const fontFamily = {
+  inter: ['InterRegular'],
+  inter_thin: ['InterThin'],
+  inter_extralight: ['InterExtraLight'],
+  inter_light: ['InterLight'],
+  inter_medium: ['InterMedium'],
+  inter_semibold: ['InterSemiBold'],
+  inter_bold: ['InterBold'],
+  inter_extrabold: ['InterExtraBold'],
+  inter_black: ['InterBlack'],
+
+  montserrat: ['MontserratRegular'],
+  montserrat_thin: ['MontserratThin'],
+  montserrat_extralight: ['MontserratExtraLight'],
+  montserrat_light: ['MontserratLight'],
+  montserrat_medium: ['MontserratMedium'],
+  montserrat_semibold: ['MontserratSemiBold'],
+  montserrat_bold: ['MontserratBold'],
+  montserrat_extrabold: ['MontserratExtraBold'],
+  montserrat_black: ['MontserratBlack'],
+} as const;

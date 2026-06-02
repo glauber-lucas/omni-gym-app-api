@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "Omni-Gym Aluno",
+    "slug": "omni-gym-aluno",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/expo/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "light",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/expo/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.anonymous.changethisname"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/expo/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/expo/splash-icon.png"
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter-Thin.otf",
+            "./assets/fonts/Inter-ExtraLight.otf",
+            "./assets/fonts/Inter-Light.otf",
+            "./assets/fonts/Inter-Regular.otf",
+            "./assets/fonts/Inter-Medium.otf",
+            "./assets/fonts/Inter-SemiBold.otf",
+            "./assets/fonts/Inter-Bold.otf",
+            "./assets/fonts/Inter-ExtraBold.otf",
+            "./assets/fonts/Inter-Black.otf",
+            "./assets/fonts/Montserrat-Thin.otf",
+            "./assets/fonts/Montserrat-ExtraLight.otf",
+            "./assets/fonts/Montserrat-Light.otf",
+            "./assets/fonts/Montserrat-Regular.otf",
+            "./assets/fonts/Montserrat-Medium.otf",
+            "./assets/fonts/Montserrat-SemiBold.otf",
+            "./assets/fonts/Montserrat-Bold.otf",
+            "./assets/fonts/Montserrat-ExtraBold.otf",
+            "./assets/fonts/Montserrat-Black.otf"
+          ]
+        }
+      ],
+      "expo-image",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
+  }
+}

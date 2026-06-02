@@ -1,0 +1,17 @@
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\AuthenticationDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\LoginUserDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\security\TokenService.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\repository\UserRepository.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\controller\AuthenticationController.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\LocalAuthDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\LoginResponseDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\security\JwtAuthenticationFilter.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\service\AuthorizationService.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\RegisterDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\model\Role.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\AuthServiceApplication.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\model\User.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\security\SecurityConfig.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\service\AuthenticationService.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\RefreshTokenDTO.java
+C:\Users\glaub\OneDrive\Documentos\fatec\projeto les\auth-service\src\main\java\com\example\auth\dto\MeUserDTO.java
