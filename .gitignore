@@ -1,0 +1,62 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+
+# Java and Maven
+**/target/
+*.class
+**/local.properties
+.classpath
+.project
+.settings/
+.factorypath
+
+# Node, pnpm and TypeScript
+**/node_modules/
+.pnpm-store/
+.npm/
+**/.cache/
+**/coverage/
+*.tsbuildinfo
+.eslintcache
+
+# Expo and React Native
+**/.expo/
+**/.expo-shared/
+**/.kotlin/
+**/.metro-cache/
+**/.metro-health-check*
+**/expo-env.d.ts
+**/web-build/
+**/dist/
+**/android/
+**/ios/
+**/app-example/
+
+# Native app credentials and build artifacts
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.orig.*
+eas-build-*.tar.gz
