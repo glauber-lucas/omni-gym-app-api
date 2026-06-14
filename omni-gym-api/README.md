@@ -1,10 +1,10 @@
-# 🏋️ Omni Gym API
+# Omni Gym API
 
 Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecânica e otimização logística em academias.
 
 ---
 
-## 🛠️ Stack
+## Stack
 
 * **Linguagem:** Java 17
 * **Framework:** Spring Boot 3.1.6
@@ -15,7 +15,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 
 ---
 
-## 🏛️ Arquitetura por Features
+## Arquitetura por Features
 
 * **`com.example.omnigym.core`**: Configurações transversais (Segurança JWT, tratamento global de exceções).
 * **`com.example.omnigym.user`**: Controle de usuários, segurança baseada em papéis (`ROLE_ALUNO` e `ROLE_INSTRUTOR`) e fluxo de autenticação.
@@ -27,9 +27,9 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 
 ---
 
-## 🚀 Endpoints da API
+## Endpoints da API
 
-### 🔐 Autenticação (`/auth`)
+### Autenticação (`/auth`)
 | Método | Endpoint | Perfil Necessário | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/auth/register` | Público | Registra um novo usuário (Aluno ou Instrutor) |
@@ -38,7 +38,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **POST** | `/auth/refresh-token` | Público | Atualiza um token JWT expirado usando o Refresh Token |
 | **GET** | `/auth/me` | Autenticado | Retorna os detalhes básicos do usuário logado |
 
-### 📝 Matrículas & Biomecânica (`/aluno` e `/instrutor`)
+### Matrículas & Biomecânica (`/aluno` e `/instrutor`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/aluno/matricula` | `ROLE_ALUNO` | Aluno preenche sua própria ficha de matrícula |
@@ -51,7 +51,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **POST** | `/instrutor/alunos/{alunoId}/perfil-biomecanico` | `ROLE_INSTRUTOR` | Mapeia estabilidade de tronco e restrições articulares do aluno |
 | **GET** | `/instrutor/alunos/{alunoId}/perfil-biomecanico/historico` | `ROLE_INSTRUTOR` | Lista o histórico de alterações do perfil biomecânico do aluno |
 
-### 🏋️ Catálogo de Exercícios, Articulações & Acessórios
+### Catálogo de Exercícios, Articulações & Acessórios
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/exercicios` | `ROLE_INSTRUTOR` | Cadastra um novo exercício no catálogo global |
@@ -61,7 +61,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **POST** | `/acessorios` | `ROLE_INSTRUTOR` | Cadastra um novo acessório assistivo de adaptação |
 | **GET** | `/acessorios` | Qualquer Perfil | Lista todos os acessórios assistivos cadastrados |
 
-### 📅 Fichas de Treino (`/treinos` e `/treino-diario`)
+### Fichas de Treino (`/treinos` e `/treino-diario`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/alunos/{alunoId}/treinos` | `ROLE_INSTRUTOR` | Cria e vincula uma ficha de treino para o aluno |
@@ -69,13 +69,13 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **GET** | `/aluno/treino/exercicios-disponiveis` | `ROLE_ALUNO` | Lista exercícios disponíveis filtrados pelo perfil biomecânico (exclui bloqueados) |
 | **PUT** | `/aluno/treino/editar` | `ROLE_ALUNO` | Edita a ficha de treino ativa do aluno (com validação de acessibilidade) |
 
-### 🏥 Clínico & Observações Pedagógicas (Módulo Clínico)
+### Clínico & Observações Pedagógicas (Módulo Clínico)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/alunos/{alunoId}/dossie-clinico` | `ROLE_INSTRUTOR` | Cadastra exames, laudos e reavaliações médicas do aluno |
 | **POST** | `/instrutor/treinos/{treinoExercicioId}/observacoes` | `ROLE_INSTRUTOR` | Adiciona orientações pedagógicas para a execução de um exercício da ficha |
 
-### 📄 Documentos Médicos (Upload & Auditoria)
+### Documentos Médicos (Upload & Auditoria)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/aluno/documentos-medicos/upload` | `ROLE_ALUNO` | Upload de documento médico pelo aluno (multipart/form-data) |
@@ -85,7 +85,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **DELETE** | `/documentos/{documentoId}` | Qualquer Perfil | Soft delete de documento médico |
 | **GET** | `/instrutor/documentos/{documentoId}/historico-acesso` | `ROLE_INSTRUTOR` | Histórico de acessos ao documento (auditoria completa) |
 
-### 💳 Módulo Financeiro (`/instrutor/financeiro`)
+### Módulo Financeiro (`/instrutor/financeiro`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/financeiro/planos` | `ROLE_INSTRUTOR` | Cadastra planos de mensalidade da academia |
@@ -96,7 +96,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **POST** | `/instrutor/financeiro/faturas/{faturaId}/pagar` | `ROLE_INSTRUTOR` | Registra pagamento manual de fatura |
 | **GET** | `/instrutor/financeiro/relatorio-faturamento` | `ROLE_INSTRUTOR` | Emite relatório consolidado de faturamento e recebimentos |
 
-### 📑 Assinaturas (`/instrutor/financeiro`)
+### Assinaturas (`/instrutor/financeiro`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/financeiro/alunos/{alunoId}/assinatura` | `ROLE_INSTRUTOR` | Cria assinatura com faturas automáticas para o aluno |
@@ -104,7 +104,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **GET** | `/instrutor/financeiro/alunos/{alunoId}/assinaturas` | `ROLE_INSTRUTOR` | Lista todas as assinaturas (ativas e canceladas) do aluno |
 | **DELETE** | `/instrutor/financeiro/assinatura/{assinaturaId}/cancelar` | `ROLE_INSTRUTOR` | Cancela uma assinatura do aluno |
 
-### 🔐 Gateway de Pagamento (`/instrutor/financeiro`)
+### Gateway de Pagamento (`/instrutor/financeiro`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/financeiro/faturas/{faturaId}/processar-pagamento` | `ROLE_INSTRUTOR` | Inicia transação de pagamento via gateway |
@@ -113,7 +113,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 
 ---
 
-## 💻 Como Executar Localmente
+## Como Executar Localmente
 
 ### 1. Pré-requisitos
 * **Java SDK 17 ou superior** instalado e configurado no PATH
@@ -149,7 +149,7 @@ app:
 
 ### 4. Rodando o Projeto
 
-#### Opção A: Usando Docker (Recomendado para Integração Frontend)
+#### Opção A: Usando Docker
 Se você possui o Docker instalado, basta abrir o terminal na pasta raiz do repositório (onde está o arquivo `docker-compose.yml`) e executar:
 
 ```bash
