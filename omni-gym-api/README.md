@@ -4,7 +4,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Stack
 
 * **Linguagem:** Java 17
 * **Framework:** Spring Boot 3.1.6
@@ -15,7 +15,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 
 ---
 
-## 🏛️ Arquitetura por Features (Vertical Slices)
+## 🏛️ Arquitetura por Features
 
 * **`com.example.omnigym.core`**: Configurações transversais (Segurança JWT, tratamento global de exceções).
 * **`com.example.omnigym.user`**: Controle de usuários, segurança baseada em papéis (`ROLE_ALUNO` e `ROLE_INSTRUTOR`) e fluxo de autenticação.
