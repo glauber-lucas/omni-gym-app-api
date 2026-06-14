@@ -8,7 +8,7 @@ import com.example.auth.exercicio.*;
 import com.example.auth.treino.*;
 import com.example.auth.clinico.*;
 
-import com.example.auth.matricula.BiomechanicalProfileDTO;
+import com.example.auth.matricula.PerfilBiomecanicoDTO;
 import com.example.auth.core.security.*;
 import com.example.auth.user.*;
 import com.example.auth.matricula.*;
@@ -90,7 +90,7 @@ class PerfilBiomecanicoControllerIntegrationTest {
 
     @Test
     void alunoNaoPodeDefinirPerfilBiomecanico() throws Exception {
-        BiomechanicalProfileDTO dto = new BiomechanicalProfileDTO(
+        PerfilBiomecanicoDTO dto = new PerfilBiomecanicoDTO(
                 "TOTAL",
                 List.of(joelho.getId()),
                 false
@@ -113,7 +113,7 @@ class PerfilBiomecanicoControllerIntegrationTest {
         perfil.setStatusMatricula(StatusMatricula.AGUARDANDO_HOMOLOGACAO);
         perfilRepository.save(perfil);
 
-        BiomechanicalProfileDTO dto = new BiomechanicalProfileDTO(
+        PerfilBiomecanicoDTO dto = new PerfilBiomecanicoDTO(
                 "TOTAL",
                 List.of(joelho.getId()),
                 false
@@ -137,7 +137,7 @@ class PerfilBiomecanicoControllerIntegrationTest {
         perfil.setStatusMatricula(StatusMatricula.HOMOLOGADA);
         perfilRepository.save(perfil);
 
-        BiomechanicalProfileDTO dto = new BiomechanicalProfileDTO(
+        PerfilBiomecanicoDTO dto = new PerfilBiomecanicoDTO(
                 "PARCIAL",
                 List.of(joelho.getId(), ombro.getId()),
                 true
