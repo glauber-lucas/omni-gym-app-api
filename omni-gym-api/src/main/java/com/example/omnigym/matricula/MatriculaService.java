@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.omnigym.financeiro.AssinaturaService;
+import com.example.omnigym.financeiro.AssinaturaResponseDTO;
 import com.example.omnigym.user.User;
 import com.example.omnigym.user.UserRepository;
 
@@ -14,10 +16,12 @@ public class MatriculaService {
 
     private final AlunoPerfilRepository perfilRepository;
     private final UserRepository userRepository;
+    private final AssinaturaService assinaturaService;
 
-    public MatriculaService(AlunoPerfilRepository perfilRepository, UserRepository userRepository) {
+    public MatriculaService(AlunoPerfilRepository perfilRepository, UserRepository userRepository, AssinaturaService assinaturaService) {
         this.perfilRepository = perfilRepository;
         this.userRepository = userRepository;
+        this.assinaturaService = assinaturaService;
     }
 
     @Transactional
@@ -65,6 +69,37 @@ public class MatriculaService {
         AlunoPerfil perfil = perfilRepository.findByUserId(alunoId)
                 .orElseThrow(() -> new IllegalArgumentException("Perfil do aluno não encontrado para o ID: " + alunoId));
 
+        if (perfil.getStatusMatricula() == StatusMatricula.HOMOLOGADA) {
+            throw new IllegalStateException("Esta matrícula já foi homologada. Não é possível homologar novamente.");
+        }
+
+        validarDadosObrigatorios(perfil);
+
+        perfil.setStatusMatricula(StatusMatricula.HOMOLOGADA);
+        AlunoPerfil saved = perfilRepository.save(perfil);
+        return mapToResponseDTO(saved);
+    }
+
+    @Transactional
+    public AlunoPerfilResponseDTO homologarMatriculaComPlano(Long alunoId, Long planoId) {
+        AlunoPerfil perfil = perfilRepository.findByUserId(alunoId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil do aluno não encontrado para o ID: " + alunoId));
+
+        // Validação 1: Verificar se já foi homologada (impedindo duplicação)
+        if (perfil.getStatusMatricula() == StatusMatricula.HOMOLOGADA) {
+            throw new IllegalStateException("Esta matrícula já foi homologada. Não é possível homologar novamente.");
+        }
+
+        // Validação 2: Verificar se status é AGUARDANDO_HOMOLOGACAO
+        if (perfil.getStatusMatricula() != StatusMatricula.AGUARDANDO_HOMOLOGACAO) {
+            throw new IllegalStateException("Matrícula não está aguardando homologação");
+        }
+
+        // Validação 3: Verificar se todos os dados obrigatórios foram preenchidos
+        validarDadosObrigatorios(perfil);
+
+        assinaturaService.criarAssinaturaComFaturas(alunoId, planoId);
+
         perfil.setStatusMatricula(StatusMatricula.HOMOLOGADA);
         AlunoPerfil saved = perfilRepository.save(perfil);
         return mapToResponseDTO(saved);
@@ -107,5 +142,32 @@ public class MatriculaService {
                 perfil.getBloqueioMedico(),
                 restricoes
         );
+    }
+
+    /**
+     * Valida se todos os dados obrigatórios da matrícula foram preenchidos
+     * Campos obrigatórios: telefone, endereco, contatoEmergencia
+     * 
+     * @param perfil AlunoPerfil a ser validado
+     * @throws IllegalArgumentException se algum campo obrigatório estiver vazio ou nulo
+     */
+    private void validarDadosObrigatorios(AlunoPerfil perfil) {
+        StringBuilder erros = new StringBuilder();
+
+        if (perfil.getTelefone() == null || perfil.getTelefone().isBlank()) {
+            erros.append("- Telefone é obrigatório\n");
+        }
+
+        if (perfil.getEndereco() == null || perfil.getEndereco().isBlank()) {
+            erros.append("- Endereço é obrigatório\n");
+        }
+
+        if (perfil.getContatoEmergencia() == null || perfil.getContatoEmergencia().isBlank()) {
+            erros.append("- Contato de emergência é obrigatório\n");
+        }
+
+        if (erros.length() > 0) {
+            throw new IllegalArgumentException("Não é possível homologar a matrícula. Dados obrigatórios faltando:\n" + erros.toString());
+        }
     }
 }

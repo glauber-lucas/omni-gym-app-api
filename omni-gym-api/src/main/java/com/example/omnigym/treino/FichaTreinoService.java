@@ -53,6 +53,33 @@ public class FichaTreinoService {
         User instrutor = userRepository.findByUsername(instrutorUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Instrutor não encontrado com o username: " + instrutorUsername));
 
+        // Validação: Verificar compatibilidade de exercícios com perfil biomecânico do aluno
+        AlunoPerfil perfilAluno = perfilRepository.findByUserId(alunoId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil biomecânico do aluno não encontrado para o ID: " + alunoId));
+
+        // Obtém todos os exercícios da ficha
+        List<Exercicio> exerciciosDaFicha = dto.exercicios().stream()
+                .map(itemDTO -> exercicioRepository.findById(itemDTO.exercicioId())
+                        .orElseThrow(() -> new IllegalArgumentException("Exercício não encontrado com ID: " + itemDTO.exercicioId())))
+                .collect(Collectors.toList());
+
+        // Classifica exercícios de acordo com o perfil biomecânico
+        List<AcessibilidadeService.ResultadoAcessibilidade> resultados = 
+                acessibilidadeService.classificarExercicios(perfilAluno, exerciciosDaFicha);
+
+        // Verifica se há exercícios bloqueados
+        List<AcessibilidadeService.ResultadoAcessibilidade> bloqueados = resultados.stream()
+                .filter(res -> res.status() == AcessibilidadeService.StatusAcessibilidade.BLOQUEADO)
+                .collect(Collectors.toList());
+
+        if (!bloqueados.isEmpty()) {
+            StringBuilder mensagem = new StringBuilder("Não é possível criar a ficha de treino. Os seguintes exercícios são incompatíveis com o perfil biomecânico do aluno:\n");
+            for (AcessibilidadeService.ResultadoAcessibilidade res : bloqueados) {
+                mensagem.append("- ").append(res.exercicio().getNome()).append("\n");
+            }
+            throw new IllegalArgumentException(mensagem.toString());
+        }
+
         // Desativa fichas anteriores
         List<FichaTreino> anteriores = fichaTreinoRepository.findByAlunoIdAndAtivaTrue(alunoId);
         for (FichaTreino f : anteriores) {
@@ -165,6 +192,132 @@ public class FichaTreinoService {
             ficha.getDataCriacao(),
             exerciciosResponse
         );
+    }
+
+    /**
+     * Lista exercícios disponíveis para o aluno com base no seu perfil biomecânico.
+     * Retorna apenas exercícios LIBERADO e LIBERADO_COM_ADAPTACAO (exclui BLOQUEADO).
+     * 
+     * @param alunoUsername username do aluno logado
+     * @return Lista de ExercicioAcessibilidadeResponseDTO com status de acessibilidade
+     */
+    @Transactional(readOnly = true)
+    public List<ExercicioAcessibilidadeResponseDTO> listarExerciciosDisponiveisParaAluno(String alunoUsername) {
+        User aluno = userRepository.findByUsername(alunoUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Aluno não encontrado com username: " + alunoUsername));
+
+        AlunoPerfil perfil = perfilRepository.findByUserId(aluno.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Perfil biomecânico do aluno não encontrado."));
+
+        if (perfil.getStatusMatricula() != StatusMatricula.HOMOLOGADA) {
+            throw new IllegalStateException("A matrícula do aluno deve estar HOMOLOGADA para visualizar exercícios disponíveis.");
+        }
+
+        // Busca todos os exercícios do catálogo
+        List<Exercicio> todosExercicios = exercicioRepository.findAll();
+
+        // Classifica pelo motor de acessibilidade
+        List<AcessibilidadeService.ResultadoAcessibilidade> classificados = 
+                acessibilidadeService.classificarExercicios(perfil, todosExercicios);
+
+        // Filtra para remover bloqueados e mapeia para DTO
+        return classificados.stream()
+                .filter(res -> res.status() != AcessibilidadeService.StatusAcessibilidade.BLOQUEADO)
+                .map(res -> {
+                    Exercicio ex = res.exercicio();
+                    List<String> exigencias = ex.getExigencias().stream()
+                            .map(Articulacao::getNome)
+                            .collect(Collectors.toList());
+
+                    return new ExercicioAcessibilidadeResponseDTO(
+                        ex.getId(),
+                        ex.getNome(),
+                        ex.getGrupoMuscular(),
+                        ex.getEstacaoTrabalho(),
+                        res.status().name(),
+                        res.acessorio() != null ? res.acessorio().getNome() : null,
+                        res.instrucaoTexto(),
+                        exigencias
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Permite ao aluno editar sua ficha de treino ativa.
+     * O aluno só pode selecionar exercícios que NÃO são bloqueados pelo seu perfil biomecânico.
+     * 
+     * @param alunoUsername username do aluno logado
+     * @param dto FichaTreinoDTO com os dados atualizados
+     * @return FichaTreinoResponseDTO com a ficha atualizada
+     */
+    @Transactional
+    public FichaTreinoResponseDTO editarTreinoAluno(String alunoUsername, FichaTreinoDTO dto) {
+        User aluno = userRepository.findByUsername(alunoUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Aluno não encontrado com username: " + alunoUsername));
+
+        AlunoPerfil perfil = perfilRepository.findByUserId(aluno.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Perfil biomecânico do aluno não encontrado."));
+
+        if (perfil.getStatusMatricula() != StatusMatricula.HOMOLOGADA) {
+            throw new IllegalStateException("A matrícula do aluno deve estar HOMOLOGADA para editar o treino.");
+        }
+
+        // Busca a ficha ativa do aluno (o instrutor deve ter criado a primeira versão)
+        List<FichaTreino> ativas = fichaTreinoRepository.findByAlunoIdAndAtivaTrue(aluno.getId());
+        if (ativas.isEmpty()) {
+            throw new IllegalArgumentException("Nenhum treino ativo encontrado. O instrutor deve criar a primeira ficha de treino.");
+        }
+        FichaTreino ficha = ativas.get(0);
+
+        // Validação de acessibilidade: verifica se todos os exercícios do DTO são permitidos
+        List<Exercicio> exerciciosDaFicha = dto.exercicios().stream()
+                .map(itemDTO -> exercicioRepository.findById(itemDTO.exercicioId())
+                        .orElseThrow(() -> new IllegalArgumentException("Exercício não encontrado com ID: " + itemDTO.exercicioId())))
+                .collect(Collectors.toList());
+
+        List<AcessibilidadeService.ResultadoAcessibilidade> resultados = 
+                acessibilidadeService.classificarExercicios(perfil, exerciciosDaFicha);
+
+        List<AcessibilidadeService.ResultadoAcessibilidade> bloqueados = resultados.stream()
+                .filter(res -> res.status() == AcessibilidadeService.StatusAcessibilidade.BLOQUEADO)
+                .collect(Collectors.toList());
+
+        if (!bloqueados.isEmpty()) {
+            StringBuilder mensagem = new StringBuilder("Não é possível editar a ficha de treino. Os seguintes exercícios são incompatíveis com o seu perfil biomecânico:\n");
+            for (AcessibilidadeService.ResultadoAcessibilidade res : bloqueados) {
+                mensagem.append("- ").append(res.exercicio().getNome()).append("\n");
+            }
+            throw new IllegalArgumentException(mensagem.toString());
+        }
+
+        // Atualiza a ficha: nome e exercícios
+        ficha.setNome(dto.nome());
+
+        // Limpa os exercícios anteriores (orphanRemoval=true cuidará da remoção)
+        ficha.getExercicios().clear();
+
+        // Adiciona os novos exercícios
+        List<TreinoExercicio> novosItens = new ArrayList<>();
+        for (TreinoExercicioDTO itemDTO : dto.exercicios()) {
+            Exercicio exercicio = exercicioRepository.findById(itemDTO.exercicioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Exercício não encontrado com ID: " + itemDTO.exercicioId()));
+
+            TreinoExercicio item = new TreinoExercicio(
+                ficha,
+                exercicio,
+                itemDTO.series(),
+                itemDTO.repeticoes(),
+                itemDTO.cargaInicial(),
+                itemDTO.descansoSegundos(),
+                itemDTO.ordemExecucao()
+            );
+            novosItens.add(item);
+        }
+        ficha.getExercicios().addAll(novosItens);
+
+        FichaTreino saved = fichaTreinoRepository.save(ficha);
+        return mapToResponseDTO(saved);
     }
 
     private FichaTreinoResponseDTO mapToResponseDTO(FichaTreino ficha) {

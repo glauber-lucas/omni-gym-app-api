@@ -1,5 +1,6 @@
 package com.example.omnigym.matricula;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,11 +17,14 @@ public class PerfilBiomecanicoService {
 
     private final AlunoPerfilRepository perfilRepository;
     private final ArticulacaoRepository articulacaoRepository;
+    private final PerfilBiomecanicoHistoricoRepository historicoRepository;
 
     public PerfilBiomecanicoService(AlunoPerfilRepository perfilRepository,
-                                    ArticulacaoRepository articulacaoRepository) {
+                                    ArticulacaoRepository articulacaoRepository,
+                                    PerfilBiomecanicoHistoricoRepository historicoRepository) {
         this.perfilRepository = perfilRepository;
         this.articulacaoRepository = articulacaoRepository;
+        this.historicoRepository = historicoRepository;
     }
 
     @Transactional
@@ -30,6 +34,11 @@ public class PerfilBiomecanicoService {
 
         if (perfil.getStatusMatricula() != StatusMatricula.HOMOLOGADA) {
             throw new IllegalStateException("O perfil do aluno deve estar HOMOLOGADO para definir o perfil biomecânico.");
+        }
+
+        // Salvar versão anterior no histórico (se o perfil biomecânico já foi definido)
+        if (perfil.getEstabilidadeTronco() != null) {
+            salvarHistorico(perfil);
         }
 
         try {
@@ -55,6 +64,54 @@ public class PerfilBiomecanicoService {
 
         AlunoPerfil saved = perfilRepository.save(perfil);
         return mapToResponseDTO(saved);
+    }
+
+    /**
+     * Lista o histórico de mudanças do perfil biomecânico de um aluno
+     * 
+     * @param alunoId ID do aluno
+     * @return Lista de PerfilBiomecanicoHistoricoDTO ordenada por data (mais recente primeiro)
+     */
+    @Transactional(readOnly = true)
+    public List<PerfilBiomecanicoHistoricoDTO> obterHistoricoPerfil(Long alunoId) {
+        AlunoPerfil perfil = perfilRepository.findByUserId(alunoId)
+                .orElseThrow(() -> new IllegalArgumentException("Perfil do aluno não encontrado para o ID: " + alunoId));
+
+        return historicoRepository.findByAlunoPerfilIdOrderByDataCriacaoDesc(perfil.getId())
+                .stream()
+                .map(this::mapHistoricoToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Salva o perfil biomecânico atual no histórico antes de atualizar
+     * 
+     * @param perfil AlunoPerfil do qual fazer backup do perfil biomecânico
+     */
+    private void salvarHistorico(AlunoPerfil perfil) {
+        PerfilBiomecanicoHistorico historico = new PerfilBiomecanicoHistorico(
+            perfil,
+            perfil.getEstabilidadeTronco(),
+            perfil.getBloqueioMedico(),
+            new HashSet<>(perfil.getRestricoes())
+        );
+        historicoRepository.save(historico);
+    }
+
+    private PerfilBiomecanicoHistoricoDTO mapHistoricoToDTO(PerfilBiomecanicoHistorico historico) {
+        List<String> restricoes = historico.getRestricoes().stream()
+                .map(Articulacao::getNome)
+                .collect(Collectors.toList());
+
+        return new PerfilBiomecanicoHistoricoDTO(
+                historico.getId(),
+                historico.getEstabilidadeTronco() != null ? historico.getEstabilidadeTronco().name() : null,
+                historico.getBloqueioMedico(),
+                restricoes,
+                historico.getDataCriacao(),
+                historico.getDataReavaliacao(),
+                historico.getObservacoes()
+        );
     }
 
     private AlunoPerfilResponseDTO mapToResponseDTO(AlunoPerfil perfil) {

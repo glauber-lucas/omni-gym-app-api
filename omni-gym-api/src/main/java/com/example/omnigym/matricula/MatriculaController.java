@@ -56,6 +56,21 @@ public class MatriculaController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/instrutor/matriculas/{alunoId}/homologar-com-plano")
+    @PreAuthorize("hasRole('INSTRUTOR')")
+    public ResponseEntity<AlunoPerfilResponseDTO> homologarMatriculaComPlano(
+            @PathVariable Long alunoId,
+            @RequestBody java.util.Map<String, Long> body) {
+        
+        if (body == null || !body.containsKey("planoId")) {
+            throw new IllegalArgumentException("planoId é obrigatório no corpo da requisição");
+        }
+        
+        Long planoId = body.get("planoId");
+        AlunoPerfilResponseDTO response = matriculaService.homologarMatriculaComPlano(alunoId, planoId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/instrutor/matriculas")
     @PreAuthorize("hasRole('INSTRUTOR')")
     public ResponseEntity<List<AlunoPerfilResponseDTO>> listarTodas() {

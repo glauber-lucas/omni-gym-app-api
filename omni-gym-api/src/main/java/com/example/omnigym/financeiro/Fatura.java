@@ -32,6 +32,10 @@ public class Fatura {
     @JoinColumn(name = "plano_id")
     private Plano plano;
 
+    @ManyToOne
+    @JoinColumn(name = "assinatura_id")
+    private Assinatura assinatura;
+
     @Column(nullable = false)
     private BigDecimal valor;
 
@@ -133,6 +137,14 @@ public class Fatura {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Assinatura getAssinatura() {
+        return assinatura;
+    }
+
+    public void setAssinatura(Assinatura assinatura) {
+        this.assinatura = assinatura;
     }
 
     @Override
