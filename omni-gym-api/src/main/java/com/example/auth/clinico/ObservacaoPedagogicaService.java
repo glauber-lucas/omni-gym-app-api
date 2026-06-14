@@ -1,12 +1,13 @@
 package com.example.auth.clinico;
 
-import com.example.auth.treino.TreinoExercicio;
-import com.example.auth.treino.TreinoExercicioRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.auth.treino.TreinoExercicio;
+import com.example.auth.treino.TreinoExercicioRepository;
 
 @Service
 public class ObservacaoPedagogicaService {

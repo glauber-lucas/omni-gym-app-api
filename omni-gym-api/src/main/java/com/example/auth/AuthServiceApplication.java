@@ -1,19 +1,12 @@
 package com.example.auth;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class AuthServiceApplication {

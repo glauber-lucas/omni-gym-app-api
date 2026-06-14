@@ -1,21 +1,9 @@
 package com.example.auth.exercicio;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
+import java.util.List;
 
-import com.example.auth.exercicio.Acessorio;
-import com.example.auth.exercicio.Articulacao;
-import com.example.auth.exercicio.AcessorioRepository;
-import com.example.auth.exercicio.ArticulacaoRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class DataSeedRunner implements CommandLineRunner {

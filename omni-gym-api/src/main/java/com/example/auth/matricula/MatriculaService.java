@@ -1,25 +1,13 @@
 package com.example.auth.matricula;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import com.example.auth.matricula.AlunoPerfilResponseDTO;
-import com.example.auth.matricula.MatriculaDTO;
-import com.example.auth.matricula.AlunoPerfil;
-import com.example.auth.matricula.StatusMatricula;
-import com.example.auth.user.User;
-import com.example.auth.matricula.AlunoPerfilRepository;
-import com.example.auth.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.auth.user.User;
+import com.example.auth.user.UserRepository;
 
 @Service
 public class MatriculaService {

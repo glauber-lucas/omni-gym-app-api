@@ -1,36 +1,15 @@
 package com.example.auth.exercicio;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
-
-import com.example.auth.exercicio.ExercicioAdaptacaoDTO;
-import com.example.auth.exercicio.ExercicioDTO;
-import com.example.auth.exercicio.ExercicioResponseDTO;
-import com.example.auth.core.security.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
-import com.example.auth.core.security.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.auth.matricula.EstabilidadeTronco;
 
 @Service
 public class ExercicioService {

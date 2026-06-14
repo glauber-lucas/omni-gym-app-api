@@ -1,18 +1,10 @@
 package com.example.auth.core.exception;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

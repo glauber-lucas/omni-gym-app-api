@@ -1,28 +1,15 @@
 package com.example.auth.matricula;
 
-import com.example.auth.core.security.*;
-import com.example.auth.core.exception.*;
-import com.example.auth.user.*;
-import com.example.auth.matricula.*;
-import com.example.auth.exercicio.*;
-import com.example.auth.treino.*;
-import com.example.auth.clinico.*;
-
-import com.example.auth.matricula.AlunoPerfilResponseDTO;
-import com.example.auth.matricula.BiomechanicalProfileDTO;
-import com.example.auth.matricula.AlunoPerfil;
-import com.example.auth.exercicio.Articulacao;
-import com.example.auth.matricula.EstabilidadeTronco;
-import com.example.auth.matricula.StatusMatricula;
-import com.example.auth.matricula.AlunoPerfilRepository;
-import com.example.auth.exercicio.ArticulacaoRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.auth.exercicio.Articulacao;
+import com.example.auth.exercicio.ArticulacaoRepository;
 
 @Service
 public class PerfilBiomecanicoService {
@@ -37,7 +24,7 @@ public class PerfilBiomecanicoService {
     }
 
     @Transactional
-    public AlunoPerfilResponseDTO salvarPerfilBiomecanico(Long alunoId, BiomechanicalProfileDTO dto) {
+    public AlunoPerfilResponseDTO salvarPerfilBiomecanico(Long alunoId, PerfilBiomecanicoDTO dto) {
         AlunoPerfil perfil = perfilRepository.findByUserId(alunoId)
                 .orElseThrow(() -> new IllegalArgumentException("Perfil do aluno não encontrado para o ID: " + alunoId));
 

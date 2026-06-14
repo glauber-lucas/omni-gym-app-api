@@ -1,8 +1,9 @@
 package com.example.auth.clinico;
 
+import java.util.Date;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.Date;
 
 public record DossieClinicoDTO(
     @NotBlank(message = "URL do laudo médico é obrigatória")

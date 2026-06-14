@@ -1,13 +1,14 @@
 package com.example.auth.clinico;
 
-import com.example.auth.user.User;
-import com.example.auth.user.UserRepository;
-import com.example.auth.user.Role;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.auth.user.Role;
+import com.example.auth.user.User;
+import com.example.auth.user.UserRepository;
 
 @Service
 public class DossieClinicoService {
