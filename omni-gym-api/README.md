@@ -12,18 +12,19 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 * **Persistência:** Spring Data JPA + Hibernate
 * **Banco de Dados:** PostgreSQL (criação automática do banco `omni_gym` na inicialização do backend)
 * **Gerenciador de Dependências:** Maven
+* **Containerização:** Docker + Docker Compose (Multi-stage Build)
 
 ---
 
 ## Arquitetura por Features
 
-* **`com.example.omnigym.core`**: Configurações transversais (Segurança JWT, tratamento global de exceções).
-* **`com.example.omnigym.user`**: Controle de usuários, segurança baseada em papéis (`ROLE_ALUNO` e `ROLE_INSTRUTOR`) e fluxo de autenticação.
+* **`com.example.omnigym.core`**: Configurações transversais (Segurança JWT, tratamento global de exceções formatado por campo para o Frontend).
+* **`com.example.omnigym.user`**: Controle de usuários, segurança baseada em papéis (`ROLE_ALUNO` e `ROLE_INSTRUTOR`), fluxo de autenticação e proteção contra escalada de privilégios.
 * **`com.example.omnigym.matricula`**: Cadastro de matrículas, homologação de alunos e mapeamento de perfis biomecânicos (limitações articulares e estabilidade de tronco).
 * **`com.example.omnigym.exercicio`**: Catálogo global de exercícios, exigências articulares, máquinas/estações de trabalho, acessórios assistivos e cadastro dinâmico.
-* **`com.example.omnigym.treino`**: Gerenciamento de fichas de treino, Motor de Acessibilidade (filtragem de segurança), Otimizador Logístico (Modo Estação Única) e edição de treinos pelo aluno.
-* **`com.example.omnigym.clinico`**: Módulo Clínico para upload de dossiês médicos, documentos médicos com auditoria de acesso, e orientações pedagógicas em tempo real.
-* **`com.example.omnigym.financeiro`**: Módulo Financeiro para controle de faturamento, planos, faturas, assinaturas, gateway de pagamento, descontos e relatórios.
+* **`com.example.omnigym.treino`**: Gerenciamento de fichas de treino, Motor de Acessibilidade (filtragem de segurança), Otimizador Logístico (Modo Estação Única) e edição de treinos de forma segura pelo próprio aluno.
+* **`com.example.omnigym.clinico`**: Módulo Clínico para upload de dossiês médicos, documentos médicos com auditoria real de acesso, e orientações pedagógicas em tempo real.
+* **`com.example.omnigym.financeiro`**: Módulo Financeiro para controle de faturamento, planos, faturas, assinaturas, gateway de pagamento, descontos, relatórios e painel self-service do aluno.
 
 ---
 
@@ -32,10 +33,10 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 ### Autenticação (`/auth`)
 | Método | Endpoint | Perfil Necessário | Descrição |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/auth/register` | Público | Registra um novo usuário (Aluno ou Instrutor) |
+| **POST** | `/auth/register` | Público | Registra um novo usuário (Alunos são livres; Instrutores exigem chave secreta) |
 | **POST** | `/auth/local` | Público | Autentica um usuário e retorna o token JWT e dados do perfil |
 | **POST** | `/auth/login` | Público | Autenticação padrão alternativa |
-| **POST** | `/auth/refresh-token` | Público | Atualiza um token JWT expirado usando o Refresh Token |
+| **POST** | `/auth/refresh-token` | Público | Renova o token de acesso usando um Refresh Token de 7 dias (claim `type="refresh"`) |
 | **GET** | `/auth/me` | Autenticado | Retorna os detalhes básicos do usuário logado |
 
 ### Matrículas & Biomecânica (`/aluno` e `/instrutor`)
@@ -66,8 +67,8 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/alunos/{alunoId}/treinos` | `ROLE_INSTRUTOR` | Cria e vincula uma ficha de treino para o aluno |
 | **GET** | `/aluno/treino-diario` | `ROLE_ALUNO` | Retorna o treino do dia adaptado e reordenado em tempo real |
-| **GET** | `/aluno/treino/exercicios-disponiveis` | `ROLE_ALUNO` | Lista exercícios disponíveis filtrados pelo perfil biomecânico (exclui bloqueados) |
-| **PUT** | `/aluno/treino/editar` | `ROLE_ALUNO` | Edita a ficha de treino ativa do aluno (com validação de acessibilidade) |
+| **GET** | `/aluno/treino/exercicios-disponiveis` | `ROLE_ALUNO` | Lista exercícios disponíveis para o aluno (exclui bloqueados biomecanicamente) |
+| **PUT** | `/aluno/treino/editar` | `ROLE_ALUNO` | Edita a ficha de treino ativa do aluno (com validação de segurança via motor) |
 
 ### Clínico & Observações Pedagógicas (Módulo Clínico)
 | Método | Endpoint | Perfil | Descrição |
@@ -75,17 +76,18 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **POST** | `/instrutor/alunos/{alunoId}/dossie-clinico` | `ROLE_INSTRUTOR` | Cadastra exames, laudos e reavaliações médicas do aluno |
 | **POST** | `/instrutor/treinos/{treinoExercicioId}/observacoes` | `ROLE_INSTRUTOR` | Adiciona orientações pedagógicas para a execução de um exercício da ficha |
 
-### Documentos Médicos (Upload & Auditoria)
+### Documentos Médicos (Upload, Download Seguro & Auditoria)
+*Nota: Todos os endpoints de posse do aluno validam dinamicamente se o ID/Username requisitante é o verdadeiro proprietário (Proteção contra IDOR).*
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/aluno/documentos-medicos/upload` | `ROLE_ALUNO` | Upload de documento médico pelo aluno (multipart/form-data) |
+| **POST** | `/aluno/documentos-medicos/upload` | `ROLE_ALUNO` | Upload de documento médico com resolução dinâmica do ID do Aluno logado |
 | **GET** | `/instrutor/alunos/{alunoId}/documentos-medicos` | `ROLE_INSTRUTOR` | Lista todos os documentos médicos de um aluno |
 | **GET** | `/instrutor/alunos/{alunoId}/documentos-medicos/tipo` | `ROLE_INSTRUTOR` | Filtra documentos médicos por tipo (`?tipo=LAUDO_MEDICO`) |
-| **GET** | `/api/documentos/{documentoId}/download` | Qualquer Perfil | Download seguro de documento com auditoria de acesso |
-| **DELETE** | `/documentos/{documentoId}` | Qualquer Perfil | Soft delete de documento médico |
-| **GET** | `/instrutor/documentos/{documentoId}/historico-acesso` | `ROLE_INSTRUTOR` | Histórico de acessos ao documento (auditoria completa) |
+| **GET** | `/api/documentos/{documentoId}/download` | `ROLE_INSTRUTOR` / `ROLE_ALUNO` | Download seguro com checagem de propriedade e registro real no log de auditoria |
+| **DELETE** | `/documentos/{documentoId}` | `ROLE_INSTRUTOR` / `ROLE_ALUNO` | Soft delete validado de documento médico |
+| **GET** | `/instrutor/documentos/{documentoId}/historico-acesso` | `ROLE_INSTRUTOR` | Histórico de acessos ao documento (auditoria completa por username real) |
 
-### Módulo Financeiro (`/instrutor/financeiro`)
+### Módulo Financeiro Administrativo (`/instrutor/financeiro`)
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/instrutor/financeiro/planos` | `ROLE_INSTRUTOR` | Cadastra planos de mensalidade da academia |
@@ -104,12 +106,14 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **GET** | `/instrutor/financeiro/alunos/{alunoId}/assinaturas` | `ROLE_INSTRUTOR` | Lista todas as assinaturas (ativas e canceladas) do aluno |
 | **DELETE** | `/instrutor/financeiro/assinatura/{assinaturaId}/cancelar` | `ROLE_INSTRUTOR` | Cancela uma assinatura do aluno |
 
-### Gateway de Pagamento (`/instrutor/financeiro`)
+### Gateway de Pagamento & Financeiro Aluno (Self-Service)
+*Nota: Endpoints protegidos por validação de propriedade de fatura para mitigar fraudes inter-aluno.*
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/instrutor/financeiro/faturas/{faturaId}/processar-pagamento` | `ROLE_INSTRUTOR` | Inicia transação de pagamento via gateway |
-| **POST** | `/instrutor/financeiro/pagamentos/{pagamentoId}/confirmar` | `ROLE_INSTRUTOR` | Confirma pagamento processado pelo gateway |
-| **POST** | `/instrutor/financeiro/pagamentos/{pagamentoId}/recusar` | `ROLE_INSTRUTOR` | Recusa pagamento processado pelo gateway |
+| **GET** | `/aluno/financeiro/faturas` | `ROLE_ALUNO` | Consulta de faturas emitidas para o próprio aluno logado |
+| **POST** | `/aluno/financeiro/faturas/{faturaId}/checkout` | `ROLE_ALUNO` | Inicia checkout de pagamento via gateway de uma fatura própria |
+| **POST** | `/aluno/financeiro/pagamentos/{pagamentoId}/simular-confirmar` | `ROLE_ALUNO` | Simula confirmação de sucesso pelo gateway de pagamento |
+| **POST** | `/aluno/financeiro/pagamentos/{pagamentoId}/simular-recusar` | `ROLE_ALUNO` | Simula resposta de recusa/falha pelo gateway de pagamento |
 
 ---
 
