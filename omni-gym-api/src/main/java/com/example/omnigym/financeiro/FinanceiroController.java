@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 public class FinanceiroController {
@@ -86,5 +88,15 @@ public class FinanceiroController {
     public ResponseEntity<RelatorioFaturamentoDTO> obterRelatorioFaturamento() {
         RelatorioFaturamentoDTO relatorio = financeiroService.obterRelatorioFaturamento();
         return ResponseEntity.ok(relatorio);
+    }
+
+    @GetMapping("/aluno/financeiro/faturas")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<List<FaturaResponseDTO>> listarMinhasFaturas(
+            @RequestParam(required = false) String status) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        List<FaturaResponseDTO> response = financeiroService.listarFaturasPorAluno(username, status);
+        return ResponseEntity.ok(response);
     }
 }

@@ -183,6 +183,22 @@ public class FinanceiroService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<FaturaResponseDTO> listarFaturasPorAluno(String username, String statusFilter) {
+        atualizarStatusFaturasAtrasadas();
+        User aluno = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Aluno não encontrado com o username: " + username));
+        
+        List<Fatura> faturas = faturaRepository.findByAlunoId(aluno.getId());
+        if (statusFilter != null && !statusFilter.isBlank()) {
+            String cleanStatus = statusFilter.trim().toUpperCase();
+            faturas = faturas.stream()
+                    .filter(f -> cleanStatus.equals(f.getStatus()))
+                    .collect(Collectors.toList());
+        }
+        return faturas.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
+    }
+
     private FaturaResponseDTO mapToResponseDTO(Fatura fatura) {
         BigDecimal valorCobrado = fatura.getValor().subtract(fatura.getDesconto());
         return new FaturaResponseDTO(

@@ -8,5 +8,9 @@ import com.example.omnigym.exercicio.*;
 import com.example.omnigym.treino.*;
 import com.example.omnigym.clinico.*;
 
-public record LoginResponseDTO(String token, String tipoToken, long expiraEmMillis) {}
+public record LoginResponseDTO(String token, String tipoToken, long expiraEmMillis, String refreshToken) {
+    public LoginResponseDTO(String token, String tipoToken, long expiraEmMillis) {
+        this(token, tipoToken, expiraEmMillis, null);
+    }
+}
 

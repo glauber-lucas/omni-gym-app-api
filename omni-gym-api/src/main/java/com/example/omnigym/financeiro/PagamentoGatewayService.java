@@ -72,6 +72,42 @@ public class PagamentoGatewayService {
         pagamentoRepository.save(pagamento);
     }
 
+    @Transactional
+    public PagamentoGatewayResponseDTO iniciarTransacaoAluno(Long faturaId, PagamentoGatewayRequestDTO dto, String username) {
+        Fatura fatura = faturaRepository.findById(faturaId)
+                .orElseThrow(() -> new IllegalArgumentException("Fatura não encontrada com ID: " + faturaId));
+
+        if (!fatura.getAluno().getUsername().equals(username)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso negado. Você só pode processar pagamentos de suas próprias faturas.");
+        }
+
+        return iniciarTransacao(faturaId, dto);
+    }
+
+    @Transactional
+    public void confirmarPagamentoAluno(Long pagamentoId, String username) {
+        PagamentoGateway pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pagamento não encontrado com ID: " + pagamentoId));
+
+        if (!pagamento.getFatura().getAluno().getUsername().equals(username)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso negado. Você só pode confirmar pagamentos de suas próprias faturas.");
+        }
+
+        confirmarPagamento(pagamentoId);
+    }
+
+    @Transactional
+    public void recusarPagamentoAluno(Long pagamentoId, String username) {
+        PagamentoGateway pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pagamento não encontrado com ID: " + pagamentoId));
+
+        if (!pagamento.getFatura().getAluno().getUsername().equals(username)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acesso negado. Você só pode recusar pagamentos de suas próprias faturas.");
+        }
+
+        recusarPagamento(pagamentoId);
+    }
+
     private String gerarIdTransacao(ProviderPagamento provedor) {
         String prefix = switch (provedor) {
             case STRIPE -> "stripe_ch_";

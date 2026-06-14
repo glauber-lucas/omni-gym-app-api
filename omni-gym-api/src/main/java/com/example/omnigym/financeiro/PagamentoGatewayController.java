@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 public class PagamentoGatewayController {
@@ -44,6 +46,40 @@ public class PagamentoGatewayController {
             @PathVariable Long pagamentoId) {
 
         pagamentoGatewayService.recusarPagamento(pagamentoId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/aluno/financeiro/faturas/{faturaId}/processar-pagamento")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<PagamentoGatewayResponseDTO> processarPagamentoAluno(
+            @PathVariable Long faturaId,
+            @Valid @RequestBody PagamentoGatewayRequestDTO dto) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        PagamentoGatewayResponseDTO response = pagamentoGatewayService.iniciarTransacaoAluno(faturaId, dto, username);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/aluno/financeiro/pagamentos/{pagamentoId}/confirmar")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<Void> confirmarPagamentoAluno(
+            @PathVariable Long pagamentoId) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        pagamentoGatewayService.confirmarPagamentoAluno(pagamentoId, username);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/aluno/financeiro/pagamentos/{pagamentoId}/recusar")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<Void> recusarPagamentoAluno(
+            @PathVariable Long pagamentoId) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        pagamentoGatewayService.recusarPagamentoAluno(pagamentoId, username);
         return ResponseEntity.noContent().build();
     }
 }

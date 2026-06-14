@@ -19,5 +19,6 @@ public record RegisterDTO(
         @NotBlank
         @Size(min = 6, message = "A senha deve ter ao menos 6 caracteres")
         String senha,
-        String role
+        String role,
+        String instructorSecret
  ) {}

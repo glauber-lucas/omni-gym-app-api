@@ -37,10 +37,33 @@ public class TokenService {
                 .sign(algorithm);
     }
 
+    public String generateRefreshToken(UserDetails userDetails) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + expirationMs * 24 * 7); // 7 dias
+
+        return JWT.create()
+                .withSubject(userDetails.getUsername())
+                .withClaim("type", "refresh")
+                .withIssuedAt(now)
+                .withExpiresAt(exp)
+                .sign(algorithm);
+    }
+
     public boolean validateToken(String token) {
         try {
-            verifier.verify(token);
-            return true;
+            DecodedJWT decoded = verifier.verify(token);
+            // Tokens de acesso não devem possuir a claim type="refresh"
+            return decoded.getClaim("type").isMissing() || !"refresh".equals(decoded.getClaim("type").asString());
+        } catch (JWTVerificationException ex) {
+            return false;
+        }
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            DecodedJWT decoded = verifier.verify(token);
+            // Tokens de refresh devem ter a claim type="refresh"
+            return "refresh".equals(decoded.getClaim("type").asString());
         } catch (JWTVerificationException ex) {
             return false;
         }

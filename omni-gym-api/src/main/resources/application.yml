@@ -27,6 +27,8 @@ app:
   upload:
     dir: uploads
     max-file-size: 52428800  # 50MB em bytes
+  security:
+    instructor-token: secret-instructor-key
 
 management:
   endpoints:

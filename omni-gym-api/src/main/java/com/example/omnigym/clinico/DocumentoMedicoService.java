@@ -120,20 +120,18 @@ public class DocumentoMedicoService {
     }
 
     @Transactional
-    public ResponseEntity<Resource> downloadDocumento(Long documentoId, String ipAddress, String userAgent) {
+    public ResponseEntity<Resource> downloadDocumento(Long documentoId, String username, String ipAddress, String userAgent) {
         DocumentoMedico documento = documentoRepository.findByIdAndAtivoTrue(documentoId)
                 .orElseThrow(() -> new IllegalArgumentException("Documento não encontrado ou inativo com ID: " + documentoId));
 
-        User usuario = userRepository.findByUsername("system")
-                .orElse(null);
+        User usuario = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + username));
 
         // Registrar em auditoria
-        if (usuario != null) {
-            DocumentoAcessoAuditoria auditoria = new DocumentoAcessoAuditoria(
-                documento, usuario, ipAddress, userAgent
-            );
-            auditoriaRepository.save(auditoria);
-        }
+        DocumentoAcessoAuditoria auditoria = new DocumentoAcessoAuditoria(
+            documento, usuario, ipAddress, userAgent
+        );
+        auditoriaRepository.save(auditoria);
 
         // Incrementar contador de acessos
         documento.incrementarAcessos();
@@ -283,6 +281,13 @@ public class DocumentoMedicoService {
         }
 
         User usuario = userRepository.findByUsername(username).orElse(null);
+        if (usuario == null) return false;
         return documento.getAluno().getId().equals(usuario.getId());
+    }
+
+    public Long getUserIdByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + username))
+                .getId();
     }
 }

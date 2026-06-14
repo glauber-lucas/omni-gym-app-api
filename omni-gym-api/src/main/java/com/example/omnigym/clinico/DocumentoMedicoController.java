@@ -93,10 +93,18 @@ public class DocumentoMedicoController {
             HttpServletRequest request,
             Authentication auth) {
 
+        String username = auth.getName();
+        boolean isInstrutor = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_INSTRUTOR"));
+
+        if (!isInstrutor && !documentoService.isAlunoDono(documentoId, username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         String ipAddress = extractIpAddress(request);
         String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
 
-        return documentoService.downloadDocumento(documentoId, ipAddress, userAgent);
+        return documentoService.downloadDocumento(documentoId, username, ipAddress, userAgent);
     }
 
     /**
@@ -108,6 +116,14 @@ public class DocumentoMedicoController {
     public ResponseEntity<Void> deletarDocumento(
             @PathVariable Long documentoId,
             Authentication auth) {
+
+        String username = auth.getName();
+        boolean isInstrutor = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_INSTRUTOR"));
+
+        if (!isInstrutor && !documentoService.isAlunoDono(documentoId, username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         documentoService.deletarDocumento(documentoId);
         return ResponseEntity.noContent().build();
@@ -129,12 +145,8 @@ public class DocumentoMedicoController {
     // ===== Métodos Auxiliares =====
 
     private Long extractAlunoIdFromAuth(Authentication auth) {
-        // Supondo que o usuário autenticado é o próprio aluno
-        // Em um cenário mais complexo, você poderia extrair do token JWT
         String username = auth.getName();
-        // Aqui você buscaria o ID do usuário pelo username
-        // Por enquanto, retornamos um placeholder
-        return 1L;  // TODO: Implementar extração real do ID
+        return documentoService.getUserIdByUsername(username);
     }
 
     private String extractIpAddress(HttpServletRequest request) {

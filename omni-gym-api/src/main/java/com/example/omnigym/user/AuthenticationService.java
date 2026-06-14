@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Service
 public class AuthenticationService {
 
@@ -30,6 +32,9 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+
+    @Value("${app.security.instructor-token:secret-instructor-key}")
+    private String instructorTokenSecret;
 
     public AuthenticationService(UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
@@ -53,6 +58,9 @@ public class AuthenticationService {
         
         Role targetRole = Role.ROLE_ALUNO;
         if (dto.role() != null && "INSTRUTOR".equalsIgnoreCase(dto.role())) {
+            if (dto.instructorSecret() == null || !instructorTokenSecret.equals(dto.instructorSecret())) {
+                throw new IllegalArgumentException("Token de registro de instrutor inválido ou ausente.");
+            }
             targetRole = Role.ROLE_INSTRUTOR;
         }
         user.setRole(targetRole);
@@ -69,7 +77,8 @@ public class AuthenticationService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado após autenticação"));
 
         String token = tokenService.generateToken(user);
-        return new LoginResponseDTO(token, "Bearer", tokenService.getExpirationMs());
+        String refreshToken = tokenService.generateRefreshToken(user);
+        return new LoginResponseDTO(token, "Bearer", tokenService.getExpirationMs(), refreshToken);
     }
 
     public User getUserByUsername(String username) {
@@ -81,7 +90,18 @@ public class AuthenticationService {
         return tokenService.validateToken(token);
     }
 
+    public boolean isRefreshTokenValid(String token) {
+        return tokenService.validateRefreshToken(token);
+    }
+
+    public String generateRefreshTokenForUser(User user) {
+        return tokenService.generateRefreshToken(user);
+    }
+
     public String refreshToken(String refreshToken) {
+        if (!tokenService.validateRefreshToken(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token inválido ou expirado");
+        }
         String username = tokenService.getUsernameFromToken(refreshToken);
         User user = getUserByUsername(username);
         return tokenService.generateToken(user);

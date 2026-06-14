@@ -81,7 +81,7 @@ public class AuthenticationController {
         var body = java.util.Map.of(
                 "jwt", response.token(),
                 "user", userDto,
-                "refreshToken", response.token()
+                "refreshToken", response.refreshToken()
         );
 
         return ResponseEntity.ok(body);
@@ -114,7 +114,7 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (!authenticationService.isTokenValid(refresh)) {
+        if (!authenticationService.isRefreshTokenValid(refresh)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -126,10 +126,12 @@ public class AuthenticationController {
 
         LoginUserDTO userDto = new LoginUserDTO(user.getId(), user.getDocumentId(), user.getUsername());
 
+        String newRefreshToken = authenticationService.generateRefreshTokenForUser(user);
+
         var body = java.util.Map.of(
                 "jwt", newToken,
                 "user", userDto,
-                "refreshToken", newToken
+                "refreshToken", newRefreshToken
         );
 
         return ResponseEntity.ok(body);
