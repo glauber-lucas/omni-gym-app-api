@@ -1,10 +1,4 @@
-# Omni Gym API
-
-Este é o backend unificado para o ecossistema **Omni Gym** (servindo tanto o aplicativo do Aluno quanto o do Instrutor). O projeto gerencia autenticação baseada em perfis, homologação de matrículas, perfis biomecânicos e de saúde dos alunos, além de possuir um **Motor de Acessibilidade** e um **Otimizador Logístico** que adaptam e ordenam os exercícios da ficha de treino diária do aluno em tempo real.
-
----
-
-## 🛠️ Stack Tecnológica
+## Stack 
 
 * **Linguagem:** Java 17
 * **Framework:** Spring Boot 3.1.6
@@ -15,9 +9,7 @@ Este é o backend unificado para o ecossistema **Omni Gym** (servindo tanto o ap
 
 ---
 
-## 📦 Estrutura de Pacotes (Arquitetura por Features)
-
-O backend é organizado usando a abordagem de **Vertical Slices / Features**, promovendo coesão e facilidade de manutenção:
+## Arquitetura
 
 * **`com.example.auth.core`**: Configurações transversais (Segurança JWT, tratamento global de erros/exceções).
 * **`com.example.auth.user`**: Controle de usuários, segurança baseada em papéis (`ROLE_ALUNO` e `ROLE_INSTRUTOR`) e fluxo de autenticação.
