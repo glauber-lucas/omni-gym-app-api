@@ -148,6 +148,16 @@ app:
 ```
 
 ### 4. Rodando o Projeto
+
+#### Opção A: Usando Docker (Recomendado para Integração Frontend)
+Se você possui o Docker instalado, basta abrir o terminal na pasta raiz do repositório (onde está o arquivo `docker-compose.yml`) e executar:
+
+```bash
+docker compose up --build
+```
+Isso irá iniciar o contêiner do banco de dados PostgreSQL e compilar/executar a API automaticamente na porta `8080`. O banco é criado e populado por completo no primeiro boot.
+
+#### Opção B: Execução Nativa
 Abra o terminal na pasta raiz do projeto backend (`omni-gym-api`) e execute:
 
 ```bash
