@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const http = axios.create({
-  baseURL: 'https://sparkz.mestresdaweb.org/api/',
+  baseURL: 'http://10.0.2.2:8080/',
 });
 
 http.interceptors.request.use(
