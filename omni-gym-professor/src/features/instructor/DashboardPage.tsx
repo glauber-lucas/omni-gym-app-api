@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
-import { Activity, AlertTriangle, CreditCard, Users } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, CreditCard, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { instructorApi } from '@/services/api/instructorApi';
 import { currency } from '@/shared/utils/format';
@@ -16,19 +16,33 @@ export function DashboardPage() {
 
   return (
     <div className="page-shell">
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-        <div className="panel overflow-hidden bg-slate-950 text-white">
-          <p className="text-sm font-semibold text-primary-80">Centro operacional</p>
-          <h2 className="mt-3 text-3xl font-black">Acompanhe alunos, treinos e faturamento sem perder contexto.</h2>
-          <p className="mt-3 max-w-2xl text-sm text-white/70">
+      <section className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
+        <div className="hero-panel min-h-72">
+          <p className="inline-flex rounded-full bg-white/14 px-4 py-2 text-sm font-black backdrop-blur">Centro operacional</p>
+          <h2 className="mt-5 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">Alunos, treinos e faturamento sem perder contexto.</h2>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
             O portal reúne homologação, acessibilidade biomecânica, catálogo, treino, clínico e financeiro no mesmo fluxo.
           </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-primary-100 shadow-sm transition hover:-translate-y-0.5" to="/alunos">
+              Revisar alunos <ArrowRight size={16} />
+            </Link>
+            <Link className="inline-flex items-center gap-2 rounded-2xl border border-white/18 bg-white/12 px-4 py-3 text-sm font-black text-white backdrop-blur transition hover:-translate-y-0.5" to="/financeiro">
+              Ver financeiro
+            </Link>
+          </div>
         </div>
-        <div className="panel">
-          <p className="muted">Pendências de matrícula</p>
-          <p className="mt-2 text-4xl font-black text-slate-950">{pending.data?.length ?? 0}</p>
-          <Link className="mt-4 inline-flex text-sm font-bold text-slate-950 hover:underline" to="/alunos">
-            Revisar agora
+        <div className="glass-panel flex flex-col justify-between">
+          <div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+              <AlertTriangle size={22} />
+            </div>
+            <p className="mt-5 text-sm font-bold text-ink-60">Pendências de matrícula</p>
+            <p className="mt-2 text-5xl font-black text-ink-100">{pending.data?.length ?? 0}</p>
+            <p className="muted mt-3">Revise cadastros antes de liberar planos e treinos.</p>
+          </div>
+          <Link className="mt-6 inline-flex items-center gap-2 text-sm font-black text-primary-100 hover:underline" to="/alunos">
+            Revisar agora <ArrowRight size={16} />
           </Link>
         </div>
       </section>
@@ -44,15 +58,17 @@ export function DashboardPage() {
         <div className="panel">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="section-title">Alunos aguardando ação</h3>
-            <Link className="text-sm font-bold text-slate-950 hover:underline" to="/alunos">
-              Abrir alunos
+            <Link className="inline-flex items-center gap-1 text-sm font-black text-primary-100 hover:underline" to="/alunos">
+              Abrir alunos <ArrowRight size={15} />
             </Link>
           </div>
           <div className="space-y-3">
             {(pending.data ?? []).slice(0, 5).map(student => (
-              <div key={student.userId ?? student.id} className="rounded-lg bg-slate-50 p-3">
-                <p className="font-semibold">{student.name ?? student.username}</p>
-                <p className="muted">{student.telefone ?? 'Telefone não informado'} · {student.statusMatricula}</p>
+              <div key={student.userId ?? student.id} className="soft-card">
+                <p className="font-black text-ink-100">{student.name ?? student.username}</p>
+                <p className="muted">
+                  {student.telefone ?? 'Telefone não informado'} · {student.statusMatricula}
+                </p>
               </div>
             ))}
             {!pending.data?.length && <p className="muted">Nenhuma matrícula pendente.</p>}
@@ -62,8 +78,8 @@ export function DashboardPage() {
         <div className="panel">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="section-title">Financeiro</h3>
-            <Link className="text-sm font-bold text-slate-950 hover:underline" to="/financeiro">
-              Abrir financeiro
+            <Link className="inline-flex items-center gap-1 text-sm font-black text-primary-100 hover:underline" to="/financeiro">
+              Abrir financeiro <ArrowRight size={15} />
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -79,21 +95,21 @@ export function DashboardPage() {
 
 function Metric({ icon: Icon, label, value }: { icon: typeof Activity; label: string; value: string | number }) {
   return (
-    <div className="panel">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-20 text-slate-950">
-        <Icon size={21} />
+    <div className="metric-card">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+        <Icon size={22} />
       </div>
       <p className="muted">{label}</p>
-      <p className="mt-1 text-xl font-black">{value}</p>
+      <p className="mt-1 text-2xl font-black text-ink-100">{value}</p>
     </div>
   );
 }
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-50 p-4">
+    <div className="soft-card">
       <p className="muted">{label}</p>
-      <p className="mt-1 font-black">{value}</p>
+      <p className="mt-1 font-black text-ink-100">{value}</p>
     </div>
   );
 }

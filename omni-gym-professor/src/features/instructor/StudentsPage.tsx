@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Search, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Search, ShieldCheck, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { StudentProfile } from '@/services/api/contracts';
 import { instructorApi } from '@/services/api/instructorApi';
@@ -62,20 +62,31 @@ export function StudentsPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Matrículas & biomecânica</p>
-        <h2 className="text-3xl font-black">Alunos</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Alunos</h2>
+            <p className="muted mt-2 max-w-2xl">Homologue matrículas, atribua planos e mantenha o perfil biomecânico atualizado.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{filtered.length} visíveis</span>
+        </div>
       </header>
 
-      {message && <div className="panel bg-primary-20 text-sm font-semibold text-slate-800">{message}</div>}
+      {message && <div className="status-banner">{message}</div>}
 
       <section className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <div className="panel">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="section-title">Matrículas cadastradas</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+                <Users size={20} />
+              </div>
+              <h3 className="section-title">Matrículas cadastradas</h3>
+            </div>
             <label className="relative w-full sm:w-80">
-              <Search className="pointer-events-none absolute left-3 top-3 text-slate-400" size={16} />
-              <input className="input pl-9" placeholder="Buscar aluno" value={search} onChange={event => setSearch(event.target.value)} />
+              <Search className="pointer-events-none absolute left-4 top-3.5 text-slate-400" size={16} />
+              <input className="input pl-11" placeholder="Buscar aluno" value={search} onChange={event => setSearch(event.target.value)} />
             </label>
           </div>
 
@@ -93,11 +104,11 @@ export function StudentsPage() {
                 {filtered.map(student => (
                   <tr key={student.userId ?? student.id}>
                     <td>
-                      <button className="font-bold text-slate-950 hover:underline" onClick={() => setSelected(student)}>
+                      <button className="font-black text-ink-100 hover:text-primary-100" onClick={() => setSelected(student)}>
                         {student.name ?? student.username}
                       </button>
                     </td>
-                    <td><span className="badge bg-slate-100 text-slate-700">{student.statusMatricula ?? 'Sem status'}</span></td>
+                    <td><span className="badge bg-primary-10 text-primary-100">{student.statusMatricula ?? 'Sem status'}</span></td>
                     <td>{student.telefone ?? 'Não informado'}</td>
                     <td>
                       <Button variant="ghost" onClick={() => approve.mutate(student)}>
@@ -113,8 +124,8 @@ export function StudentsPage() {
 
           <div className="space-y-3 md:hidden">
             {filtered.map(student => (
-              <div key={student.userId ?? student.id} className="rounded-lg bg-slate-50 p-4">
-                <button className="font-bold" onClick={() => setSelected(student)}>{student.name ?? student.username}</button>
+              <div key={student.userId ?? student.id} className="soft-card">
+                <button className="font-black text-ink-100" onClick={() => setSelected(student)}>{student.name ?? student.username}</button>
                 <p className="muted">{student.statusMatricula ?? 'Sem status'} · {student.telefone ?? 'Sem telefone'}</p>
                 <Button className="mt-3 w-full justify-center" variant="ghost" onClick={() => approve.mutate(student)}>
                   <CheckCircle2 size={16} />
@@ -127,9 +138,16 @@ export function StudentsPage() {
           {!filtered.length && <EmptyState title="Nenhum aluno encontrado." />}
         </div>
 
-        <aside className="panel h-fit space-y-4">
-          <h3 className="section-title">Ações do aluno</h3>
-          <p className="muted">{selected ? selected.name ?? selected.username : 'Selecione um aluno para editar biomecânica.'}</p>
+        <aside className="glass-panel h-fit space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary-20 text-secondary-100">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Ações do aluno</h3>
+              <p className="muted">{selected ? selected.name ?? selected.username : 'Selecione um aluno para editar biomecânica.'}</p>
+            </div>
+          </div>
 
           <label className="grid gap-1.5">
             <span className="label">Plano para homologação</span>
@@ -154,7 +172,7 @@ export function StudentsPage() {
             <p className="label mb-2">Restrições articulares</p>
             <div className="grid gap-2">
               {(articulations.data ?? []).map(item => (
-                <label key={item.id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                <label key={item.id} className="flex items-center gap-2 rounded-2xl border border-slate-100 bg-white/90 px-3 py-2 text-sm font-semibold text-ink-80">
                   <input
                     type="checkbox"
                     checked={restricoesIds.includes(item.id)}
@@ -168,7 +186,7 @@ export function StudentsPage() {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
+          <label className="flex items-center gap-2 rounded-2xl bg-rose-50 px-3 py-2 text-sm font-black text-rose-700">
             <input type="checkbox" checked={bloqueioMedico} onChange={event => setBloqueioMedico(event.target.checked)} />
             Bloqueio médico ativo
           </label>

@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
-import { Plus, Save } from 'lucide-react';
+import { Dumbbell, Plus, Save, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { instructorApi } from '@/services/api/instructorApi';
 import { Button } from '@/shared/components/Button';
@@ -86,22 +86,36 @@ export function CatalogPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Catálogo global</p>
-        <h2 className="text-3xl font-black">Exercícios, articulações e acessórios</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Exercícios, articulações e acessórios</h2>
+            <p className="muted mt-2 max-w-2xl">Organize a biblioteca que sustenta treinos adaptados e regras biomecânicas.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{exercises.data?.length ?? 0} exercícios</span>
+        </div>
       </header>
 
-      {message && <div className="panel bg-primary-20 text-sm font-semibold text-slate-800">{message}</div>}
+      {message && <div className="status-banner">{message}</div>}
 
       <section className="grid gap-5 xl:grid-cols-[420px_1fr]">
         <form
-          className="panel h-fit space-y-4"
+          className="glass-panel h-fit space-y-4"
           onSubmit={event => {
             event.preventDefault();
             createExercise.mutate();
           }}
         >
-          <h3 className="section-title">Novo exercício</h3>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+              <Dumbbell size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Novo exercício</h3>
+              <p className="muted">Defina exigências e adaptação quando necessário.</p>
+            </div>
+          </div>
           <Field label="Nome" value={exercise.nome} onChange={event => setExercise({ ...exercise, nome: event.target.value })} required />
           <Field label="Grupo muscular" value={exercise.grupoMuscular} onChange={event => setExercise({ ...exercise, grupoMuscular: event.target.value })} required />
           <Field label="Estação de trabalho" value={exercise.estacaoTrabalho} onChange={event => setExercise({ ...exercise, estacaoTrabalho: event.target.value })} required />
@@ -135,8 +149,8 @@ export function CatalogPage() {
               ))}
             </div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3">
-            <p className="mb-3 font-semibold">Adaptação opcional</p>
+          <div className="rounded-[1.35rem] border border-primary-20 bg-primary-10/60 p-4">
+            <p className="mb-3 font-black text-ink-100">Adaptação opcional</p>
             <div className="grid gap-3">
               <select className="input" value={exercise.adaptacaoArticulacaoId} onChange={event => setExercise({ ...exercise, adaptacaoArticulacaoId: event.target.value })}>
                 <option value="">Articulação em conflito</option>
@@ -157,12 +171,19 @@ export function CatalogPage() {
 
         <div className="grid gap-5">
           <div className="panel">
-            <h3 className="section-title">Exercícios cadastrados</h3>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary-20 text-secondary-100">
+                <SlidersHorizontal size={20} />
+              </div>
+              <h3 className="section-title">Exercícios cadastrados</h3>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {(exercises.data ?? []).map(item => (
-                <div key={item.id} className="rounded-lg bg-slate-50 p-4">
-                  <p className="font-bold">{item.nome}</p>
-                  <p className="muted">{item.grupoMuscular} · {item.estacaoTrabalho}</p>
+                <div key={item.id} className="soft-card">
+                  <p className="font-black text-ink-100">{item.nome}</p>
+                  <p className="muted">
+                    {item.grupoMuscular} · {item.estacaoTrabalho}
+                  </p>
                   <p className="muted mt-2">Exigências: {item.exigencias?.join(', ') || 'Não informadas'}</p>
                 </div>
               ))}
@@ -181,7 +202,7 @@ export function CatalogPage() {
               <h3 className="section-title">Articulações</h3>
               <Field label="Nova articulação" value={newArticulation} onChange={event => setNewArticulation(event.target.value)} />
               <Button variant="ghost"><Plus size={16} />Adicionar</Button>
-              <p className="muted">{(articulations.data ?? []).map(item => item.nome).join(', ')}</p>
+              <p className="muted">{(articulations.data ?? []).map(item => item.nome).join(', ') || 'Nenhuma articulação cadastrada.'}</p>
             </form>
 
             <form
@@ -194,7 +215,7 @@ export function CatalogPage() {
               <h3 className="section-title">Acessórios</h3>
               <Field label="Novo acessório" value={newAccessory} onChange={event => setNewAccessory(event.target.value)} />
               <Button variant="ghost"><Plus size={16} />Adicionar</Button>
-              <p className="muted">{(accessories.data ?? []).map(item => item.nome).join(', ')}</p>
+              <p className="muted">{(accessories.data ?? []).map(item => item.nome).join(', ') || 'Nenhum acessório cadastrado.'}</p>
             </form>
           </div>
         </div>

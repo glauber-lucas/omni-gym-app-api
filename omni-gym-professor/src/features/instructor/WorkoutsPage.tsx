@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Activity, Plus, Save, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { WorkoutExercisePayload } from '@/services/api/contracts';
 import { instructorApi } from '@/services/api/instructorApi';
@@ -66,12 +66,18 @@ export function WorkoutsPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Fichas de treino</p>
-        <h2 className="text-3xl font-black">Criar treino por aluno</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Criar treino por aluno</h2>
+            <p className="muted mt-2 max-w-2xl">Monte prescrições com sequência, volume, carga e descanso em uma tela só.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{items.length} exercícios na ficha</span>
+        </div>
       </header>
 
-      {message && <div className="panel bg-primary-20 text-sm font-semibold text-slate-800">{message}</div>}
+      {message && <div className="status-banner">{message}</div>}
 
       <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
         <form
@@ -96,9 +102,9 @@ export function WorkoutsPage() {
             <Field label="Nome da ficha" value={nome} onChange={event => setNome(event.target.value)} required />
           </div>
 
-          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+          <div className="rounded-[1.35rem] border border-primary-20 bg-primary-10/60 p-4">
             <div className="mb-4">
-              <h3 className="font-bold text-slate-950">Adicionar exercício</h3>
+              <h3 className="font-black text-ink-100">Adicionar exercício</h3>
               <p className="muted">Escolha um exercício cadastrado no catálogo e defina a prescrição inicial.</p>
             </div>
 
@@ -149,11 +155,16 @@ export function WorkoutsPage() {
             {items.map((item, index) => {
               const exercise = exercises.data?.find(found => found.id === item.exercicioId);
               return (
-                <div key={`${item.exercicioId}-${index}`} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <div key={`${item.exercicioId}-${index}`} className="rounded-[1.35rem] border border-slate-100 bg-white/90 p-4 shadow-sm">
                   <div className="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold">{exercise?.nome ?? `Exercício ${item.exercicioId}`}</p>
-                      <p className="muted">{exercise?.estacaoTrabalho ?? 'Estação livre'}</p>
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-100 to-secondary-100 text-sm font-black text-white">
+                        {item.ordemExecucao}
+                      </span>
+                      <div>
+                        <p className="font-black text-ink-100">{exercise?.nome ?? `Exercício ${item.exercicioId}`}</p>
+                        <p className="muted">{exercise?.estacaoTrabalho ?? 'Estação livre'}</p>
+                      </div>
                     </div>
                     <button className="icon-button" type="button" onClick={() => setItems(current => current.filter((_, itemIndex) => itemIndex !== index))} aria-label="Remover exercício">
                       <Trash2 size={16} />
@@ -178,13 +189,23 @@ export function WorkoutsPage() {
           </Button>
         </form>
 
-        <aside className="panel h-fit">
-          <h3 className="section-title">Catálogo disponível</h3>
+        <aside className="glass-panel h-fit">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+              <Activity size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Catálogo disponível</h3>
+              <p className="muted">Adicione exercícios rapidamente à ficha atual.</p>
+            </div>
+          </div>
           <div className="mt-4 space-y-3">
             {(exercises.data ?? []).map(exercise => (
-              <div key={exercise.id} className="rounded-lg border border-slate-100 p-3">
-                <p className="font-semibold">{exercise.nome}</p>
-                <p className="muted">{exercise.grupoMuscular} · {exercise.estacaoTrabalho}</p>
+              <div key={exercise.id} className="rounded-2xl border border-slate-100 bg-white/90 p-3 shadow-sm">
+                <p className="font-black text-ink-100">{exercise.nome}</p>
+                <p className="muted">
+                  {exercise.grupoMuscular} · {exercise.estacaoTrabalho}
+                </p>
                 <Button className="mt-3 w-full justify-center" variant="ghost" type="button" onClick={() => addExercise(exercise.id)}>
                   <Plus size={16} />
                   Adicionar

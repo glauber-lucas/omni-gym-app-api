@@ -27,12 +27,15 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/90 backdrop-blur xl:hidden">
+    <div className="min-h-screen text-ink-100">
+      <header className="sticky top-0 z-30 border-b border-white/70 bg-white/90 shadow-sm backdrop-blur-xl xl:hidden">
         <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Omni Gym Professor" className="h-10 w-10 object-contain" />
-            <span className="font-semibold">Omni Gym Professor</span>
+            <img src="/logo.png" alt="Omni Gym Professor" className="h-11 w-11 rounded-2xl object-cover shadow-sm" />
+            <div>
+              <span className="block text-sm font-black leading-tight">Omni Gym</span>
+              <span className="block text-xs font-bold text-primary-100">Portal do professor</span>
+            </div>
           </div>
           <button className="icon-button" onClick={() => setOpen(value => !value)} aria-label="Abrir menu">
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -42,20 +45,20 @@ export function AppLayout() {
 
       <aside
         className={cx(
-          'fixed inset-y-0 left-0 z-40 w-72 border-r border-white/70 bg-white/95 p-5 shadow-soft backdrop-blur transition-transform xl:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 w-80 border-r border-white/70 bg-white/90 p-5 shadow-soft backdrop-blur-xl transition-transform xl:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex h-full flex-col">
-          <div className="mb-8 flex items-center gap-3">
-            <img src="/logo.png" alt="Omni Gym Professor" className="h-14 w-14 object-contain" />
+          <div className="mb-8 rounded-[1.5rem] border border-primary-20 bg-gradient-to-br from-white to-primary-10 p-4 shadow-card">
+            <img src="/logo.png" alt="Omni Gym Professor" className="mx-auto h-24 w-24 rounded-[1.35rem] object-cover shadow-sm" />
             <div>
-              <p className="text-sm font-semibold text-primary-100">Portal do professor</p>
-              <h1 className="text-xl font-bold">Omni Gym</h1>
+              <p className="mt-4 text-center text-xs font-black uppercase tracking-wide text-primary-100">Portal do professor</p>
+              <h1 className="text-center text-xl font-black">Omni Gym</h1>
             </div>
           </div>
 
-          <nav className="space-y-2">
+          <nav className="space-y-2.5">
             {navigation.map(item => (
               <NavLink
                 key={item.to}
@@ -64,10 +67,10 @@ export function AppLayout() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cx(
-                    'flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition',
+                    'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black transition',
                     isActive
-                      ? 'bg-primary-20 text-slate-950 shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                      ? 'bg-gradient-to-r from-primary-100 to-secondary-100 text-white shadow-card'
+                      : 'text-ink-60 hover:-translate-y-0.5 hover:bg-white hover:text-ink-100 hover:shadow-sm'
                   )
                 }
               >
@@ -77,9 +80,10 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="mt-auto rounded-lg bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">Instrutor</p>
-            <p className="mt-1 truncate text-sm font-semibold">{user.name ?? user.email}</p>
+          <div className="mt-auto rounded-[1.5rem] border border-slate-100 bg-slate-50/90 p-4">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-400">Instrutor ativo</p>
+            <p className="mt-1 truncate text-sm font-black">{user.name ?? user.email}</p>
+            <p className="mt-1 text-xs font-semibold text-ink-60">Alunos, treinos e financeiro com contexto.</p>
             <Button variant="ghost" className="mt-4 w-full justify-center" onClick={logout}>
               <LogOut size={16} />
               Sair
@@ -90,7 +94,7 @@ export function AppLayout() {
 
       {open && <button className="fixed inset-0 z-30 bg-slate-950/30 xl:hidden" onClick={() => setOpen(false)} />}
 
-      <main className="px-4 py-6 sm:px-6 xl:ml-72 xl:px-10 xl:py-8">
+      <main className="px-4 py-6 sm:px-6 xl:ml-80 xl:px-10 xl:py-8">
         <Outlet />
       </main>
     </div>

@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Eye, FilePlus2, Trash2 } from 'lucide-react';
+import { Download, Eye, FilePlus2, FileText, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { instructorApi } from '@/services/api/instructorApi';
 import { Button } from '@/shared/components/Button';
@@ -67,16 +67,30 @@ export function ClinicalPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Módulo clínico</p>
-        <h2 className="text-3xl font-black">Dossiês, documentos e auditoria</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Dossiês, documentos e auditoria</h2>
+            <p className="muted mt-2 max-w-2xl">Centralize evidências clínicas, reavaliações e histórico de acesso dos documentos.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{alunoId ? 'Aluno selecionado' : 'Selecione um aluno'}</span>
+        </div>
       </header>
 
-      {message && <div className="panel bg-primary-20 text-sm font-semibold text-slate-800">{message}</div>}
+      {message && <div className="status-banner">{message}</div>}
 
       <section className="grid gap-5 xl:grid-cols-[420px_1fr]">
-        <aside className="panel h-fit space-y-4">
-          <h3 className="section-title">Contexto do aluno</h3>
+        <aside className="glass-panel h-fit space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-20 text-primary-100">
+              <FilePlus2 size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Contexto do aluno</h3>
+              <p className="muted">Escolha um aluno antes de consultar documentos.</p>
+            </div>
+          </div>
           <label className="grid gap-1.5">
             <span className="label">Aluno</span>
             <select className="input" value={alunoId} onChange={event => setAlunoId(event.target.value)}>
@@ -90,13 +104,13 @@ export function ClinicalPage() {
           </label>
 
           <form
-            className="space-y-3 rounded-lg bg-slate-50 p-4"
+            className="space-y-3 rounded-[1.35rem] border border-primary-20 bg-primary-10/60 p-4"
             onSubmit={event => {
               event.preventDefault();
               createRecord.mutate();
             }}
           >
-            <p className="font-bold">Novo dossiê</p>
+            <p className="font-black text-ink-100">Novo dossiê</p>
             <Field label="URL do laudo" value={record.laudoMedicoUrl} onChange={event => setRecord({ ...record, laudoMedicoUrl: event.target.value })} required />
             <Field label="Data da avaliação" type="date" value={record.dataAvaliacao} onChange={event => setRecord({ ...record, dataAvaliacao: event.target.value })} required />
             <Field
@@ -117,7 +131,12 @@ export function ClinicalPage() {
         <div className="grid gap-5">
           <section className="panel">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="section-title">Documentos médicos</h3>
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary-20 text-secondary-100">
+                  <FileText size={20} />
+                </div>
+                <h3 className="section-title">Documentos médicos</h3>
+              </div>
               <select className="input w-full sm:w-72" value={tipo} onChange={event => setTipo(event.target.value)} disabled={!alunoId}>
                 {documentTypes.map(item => (
                   <option key={item || 'todos'} value={item}>
@@ -128,10 +147,12 @@ export function ClinicalPage() {
             </div>
             <div className="space-y-3">
               {(docs.data ?? []).map(document => (
-                <div key={document.id} className="flex flex-col gap-3 rounded-lg bg-slate-50 p-4 md:flex-row md:items-center md:justify-between">
+                <div key={document.id} className="soft-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <p className="font-bold">{document.tipo.replaceAll('_', ' ')}</p>
-                    <p className="muted">{document.descricao || 'Sem descrição'} · {date(document.dataUpload)} · {document.acessosCount ?? 0} acessos</p>
+                    <p className="font-black text-ink-100">{document.tipo.replaceAll('_', ' ')}</p>
+                    <p className="muted">
+                      {document.descricao || 'Sem descrição'} · {date(document.dataUpload)} · {document.acessosCount ?? 0} acessos
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <a className="icon-button" href={instructorApi.documentDownloadUrl(document.id)} target="_blank" rel="noreferrer" aria-label="Baixar documento">
@@ -156,10 +177,10 @@ export function ClinicalPage() {
               <h3 className="section-title">Dossiês cadastrados</h3>
               <div className="mt-4 space-y-3">
                 {(records.data ?? []).map(item => (
-                  <div key={item.id} className="rounded-lg bg-slate-50 p-4">
-                    <p className="font-bold">{date(item.dataAvaliacao)}</p>
+                  <div key={item.id} className="soft-card">
+                    <p className="font-black text-ink-100">{date(item.dataAvaliacao)}</p>
                     <p className="muted">Próxima: {date(item.dataProximaReavaliacao)}</p>
-                    <p className="mt-2 text-sm text-slate-700">{item.observacoes || 'Sem observações.'}</p>
+                    <p className="mt-2 text-sm text-ink-60">{item.observacoes || 'Sem observações.'}</p>
                   </div>
                 ))}
                 {alunoId && !records.data?.length && <EmptyState title="Nenhum dossiê cadastrado." />}
@@ -170,8 +191,8 @@ export function ClinicalPage() {
               <h3 className="section-title">Auditoria de acesso</h3>
               <div className="mt-4 space-y-3">
                 {(audit.data ?? []).map(item => (
-                  <div key={item.id} className="rounded-lg bg-slate-50 p-4">
-                    <p className="font-bold">{item.username ?? 'Usuário'}</p>
+                  <div key={item.id} className="soft-card">
+                    <p className="font-black text-ink-100">{item.username ?? 'Usuário'}</p>
                     <p className="muted">{date(item.dataAcesso)} · {item.ipAddress ?? 'IP não informado'}</p>
                   </div>
                 ))}

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Activity, Plus, Save, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { WorkoutExercise } from '@/services/api/contracts';
 import { studentApi } from '@/services/api/studentApi';
@@ -55,9 +55,15 @@ export function WorkoutPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Treino diário</p>
-        <h2 className="text-3xl font-black">Ficha adaptada</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Ficha adaptada</h2>
+            <p className="muted mt-2 max-w-2xl">Edite a sequência do treino respeitando as restrições biomecânicas disponíveis no catálogo.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{items.length} exercícios</span>
+        </div>
       </header>
 
       <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
@@ -68,14 +74,21 @@ export function WorkoutPage() {
             mutation.mutate({ nome: name, exercicios: items });
           }}
         >
-          <Field label="Nome da ficha" value={name} onChange={event => setName(event.target.value)} />
+          <div className="rounded-[1.35rem] border border-primary-20 bg-primary-10/70 p-4">
+            <Field label="Nome da ficha" value={name} onChange={event => setName(event.target.value)} />
+          </div>
           <div className="space-y-3">
             {items.map((item, index) => (
-              <div key={`${item.exercicioId}-${index}`} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <div key={`${item.exercicioId}-${index}`} className="rounded-[1.35rem] border border-slate-100 bg-white/90 p-4 shadow-sm">
                 <div className="mb-4 flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-bold">{item.exercicioNome ?? `Exercício ${item.exercicioId}`}</p>
-                    <p className="muted">{item.estacaoTrabalho ?? 'Estação livre'}</p>
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-100 to-secondary-100 text-sm font-black text-white">
+                      {item.ordemExecucao}
+                    </span>
+                    <div>
+                      <p className="font-black text-ink-100">{item.exercicioNome ?? `Exercício ${item.exercicioId}`}</p>
+                      <p className="muted">{item.estacaoTrabalho ?? 'Estação livre'}</p>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -103,7 +116,7 @@ export function WorkoutPage() {
             {!items.length && <EmptyState title="Nenhum exercício na ficha." />}
           </div>
 
-          {message && <div className="rounded-lg bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}</div>}
+          {message && <div className="status-banner">{message}</div>}
 
           <Button className="w-full justify-center sm:w-fit" isLoading={mutation.isPending}>
             <Save size={16} />
@@ -111,14 +124,23 @@ export function WorkoutPage() {
           </Button>
         </form>
 
-        <aside className="panel h-fit">
-          <h3 className="section-title">Exercícios disponíveis</h3>
-          <p className="muted mt-1">A lista já exclui exercícios bloqueados biomecanicamente.</p>
+        <aside className="glass-panel h-fit">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-10 text-primary-100">
+              <Activity size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Exercícios disponíveis</h3>
+              <p className="muted">A lista já exclui exercícios bloqueados biomecanicamente.</p>
+            </div>
+          </div>
           <div className="mt-4 space-y-3">
             {(exercises.data ?? []).map(exercise => (
-              <div key={exercise.id} className="rounded-lg border border-slate-100 p-3">
-                <p className="font-semibold">{exercise.nome}</p>
-                <p className="muted">{exercise.grupoMuscular} · {exercise.estacaoTrabalho}</p>
+              <div key={exercise.id} className="rounded-2xl border border-slate-100 bg-white/90 p-3 shadow-sm">
+                <p className="font-black text-ink-100">{exercise.nome}</p>
+                <p className="muted">
+                  {exercise.grupoMuscular} · {exercise.estacaoTrabalho}
+                </p>
                 <Button className="mt-3 w-full justify-center" variant="ghost" type="button" onClick={() => addExercise(exercise.id)}>
                   <Plus size={16} />
                   Adicionar

@@ -90,12 +90,18 @@ export function FinancePage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Financeiro administrativo</p>
-        <h2 className="text-3xl font-black">Planos, faturas e assinaturas</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Planos, faturas e assinaturas</h2>
+            <p className="muted mt-2 max-w-2xl">Crie planos, emita cobranças e acompanhe recebimentos com visão operacional.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{invoices.data?.length ?? 0} faturas</span>
+        </div>
       </header>
 
-      {message && <div className="panel bg-primary-20 text-sm font-semibold text-slate-800">{message}</div>}
+      {message && <div className="status-banner">{message}</div>}
 
       <section className="grid gap-4 md:grid-cols-3">
         <Metric label="Recebido" value={currency(report.data?.totalRecebido)} />
@@ -174,11 +180,11 @@ export function FinancePage() {
             <tbody>
               {(invoices.data ?? []).map(item => (
                 <tr key={item.id}>
-                  <td>{item.alunoNome ?? item.alunoId}</td>
+                  <td className="font-black text-ink-100">{item.alunoNome ?? item.alunoId}</td>
                   <td>{item.planoNome ?? 'Avulsa'}</td>
                   <td>{date(item.dataVencimento)}</td>
-                  <td><span className="badge bg-slate-100 text-slate-700">{item.status ?? 'Aberta'}</span></td>
-                  <td className="font-bold">{currency(item.valorCobrado ?? item.valorOriginal)}</td>
+                  <td><span className="badge bg-primary-10 text-primary-100">{item.status ?? 'Aberta'}</span></td>
+                  <td className="font-black text-ink-100">{currency(item.valorCobrado ?? item.valorOriginal)}</td>
                   <td>
                     <div className="flex gap-2">
                       <input className="input w-28" type="number" step="0.01" value={discounts[item.id] ?? ''} onChange={event => setDiscounts({ ...discounts, [item.id]: event.target.value })} />
@@ -203,15 +209,15 @@ export function FinancePage() {
 
         <div className="mt-4 space-y-3 lg:hidden">
           {(invoices.data ?? []).map(item => (
-            <div key={item.id} className="rounded-lg bg-slate-50 p-4">
+            <div key={item.id} className="soft-card">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-bold">{item.alunoNome ?? item.alunoId}</p>
+                  <p className="font-black text-ink-100">{item.alunoNome ?? item.alunoId}</p>
                   <p className="muted">{item.planoNome ?? 'Avulsa'} · {date(item.dataVencimento)}</p>
                 </div>
-                <span className="badge bg-slate-100 text-slate-700">{item.status ?? 'Aberta'}</span>
+                <span className="badge bg-primary-10 text-primary-100">{item.status ?? 'Aberta'}</span>
               </div>
-              <p className="mt-3 text-xl font-black">{currency(item.valorCobrado ?? item.valorOriginal)}</p>
+              <p className="mt-3 text-xl font-black text-ink-100">{currency(item.valorCobrado ?? item.valorOriginal)}</p>
             </div>
           ))}
         </div>
@@ -224,9 +230,9 @@ export function FinancePage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="panel">
+    <div className="metric-card">
       <p className="muted">{label}</p>
-      <p className="mt-1 text-2xl font-black">{value}</p>
+      <p className="mt-1 text-2xl font-black text-ink-100">{value}</p>
     </div>
   );
 }

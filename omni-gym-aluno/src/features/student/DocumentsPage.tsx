@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Download, FileUp, Trash2 } from 'lucide-react';
+import { Download, FileText, FileUp, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { MedicalDocument } from '@/services/api/contracts';
 import { studentApi } from '@/services/api/studentApi';
@@ -40,14 +40,20 @@ export function DocumentsPage() {
 
   return (
     <div className="page-shell">
-      <header>
+      <header className="glass-panel">
         <p className="muted">Clínico</p>
-        <h2 className="text-3xl font-black">Documentos médicos</h2>
+        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-3xl font-black text-ink-100">Documentos médicos</h2>
+            <p className="muted mt-2 max-w-2xl">Envie laudos, exames e pareceres para manter seu acompanhamento clínico atualizado.</p>
+          </div>
+          <span className="badge bg-primary-10 text-primary-100">{documents.length} nesta sessão</span>
+        </div>
       </header>
 
       <section className="grid gap-5 xl:grid-cols-[420px_1fr]">
         <form
-          className="panel h-fit space-y-4"
+          className="glass-panel h-fit space-y-4"
           onSubmit={event => {
             event.preventDefault();
             if (!arquivo) {
@@ -57,7 +63,15 @@ export function DocumentsPage() {
             upload.mutate({ arquivo, tipo, descricao, dataProximaReavaliacao: dataProximaReavaliacao ? `${dataProximaReavaliacao}T00:00:00` : undefined });
           }}
         >
-          <h3 className="section-title">Novo upload</h3>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-10 text-primary-100">
+              <FileUp size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Novo upload</h3>
+              <p className="muted">Arquivos ficam disponíveis para análise do professor.</p>
+            </div>
+          </div>
           <label className="grid gap-1.5">
             <span className="label">Tipo</span>
             <select className="input" value={tipo} onChange={event => setTipo(event.target.value)}>
@@ -71,7 +85,7 @@ export function DocumentsPage() {
           <Field label="Próxima reavaliação" type="date" value={dataProximaReavaliacao} onChange={event => setDataProximaReavaliacao(event.target.value)} />
           <Textarea label="Descrição" value={descricao} onChange={event => setDescricao(event.target.value)} />
           <Field label="Arquivo" type="file" onChange={event => setArquivo(event.target.files?.[0] ?? null)} />
-          {message && <div className="rounded-lg bg-slate-50 p-3 text-sm font-semibold text-slate-700">{message}</div>}
+          {message && <div className="status-banner">{message}</div>}
           <Button className="w-full justify-center" isLoading={upload.isPending}>
             <FileUp size={16} />
             Enviar documento
@@ -79,16 +93,23 @@ export function DocumentsPage() {
         </form>
 
         <div className="panel">
-          <h3 className="section-title">Documentos enviados nesta sessão</h3>
-          <p className="muted mt-1">
-            O backend atual não expõe listagem própria do aluno; novos uploads aparecem aqui imediatamente para download ou exclusão.
-          </p>
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary-20 text-secondary-100">
+              <FileText size={20} />
+            </div>
+            <div>
+              <h3 className="section-title">Documentos enviados nesta sessão</h3>
+              <p className="muted">Novos uploads aparecem aqui imediatamente para download ou exclusão.</p>
+            </div>
+          </div>
           <div className="mt-5 space-y-3">
             {documents.map(document => (
-              <div key={document.id} className="flex flex-col gap-3 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div key={document.id} className="soft-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-bold">{document.tipo.replaceAll('_', ' ')}</p>
-                  <p className="muted">{document.descricao || 'Sem descrição'} · Upload em {date(document.dataUpload)}</p>
+                  <p className="font-black text-ink-100">{document.tipo.replaceAll('_', ' ')}</p>
+                  <p className="muted">
+                    {document.descricao || 'Sem descrição'} · Upload em {date(document.dataUpload)}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <a className="icon-button" href={studentApi.documentDownloadUrl(document.id)} target="_blank" rel="noreferrer" aria-label="Baixar documento">
