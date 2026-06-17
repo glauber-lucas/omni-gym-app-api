@@ -1,0 +1,67 @@
+import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { tokenStore } from '@/services/api/client';
+import { authApi } from '@/services/api/instructorApi';
+import type { User } from '@/services/api/contracts';
+
+type AuthContextValue = {
+  user: User | null;
+  isReady: boolean;
+  login: (payload: { identifier: string; password: string }) => Promise<void>;
+  register: (payload: { usuario: string; senha: string }) => Promise<void>;
+  logout: () => void;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    async function restore() {
+      if (!tokenStore.getAccess()) {
+        setIsReady(true);
+        return;
+      }
+
+      try {
+        setUser(await authApi.me());
+      } catch {
+        tokenStore.clear();
+      } finally {
+        setIsReady(true);
+      }
+    }
+
+    void restore();
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      isReady,
+      async login(payload) {
+        const response = await authApi.login(payload);
+        setUser(response.user ?? (await authApi.me()));
+      },
+      async register(payload) {
+        await authApi.register(payload);
+      },
+      logout() {
+        tokenStore.clear();
+        setUser(null);
+      }
+    }),
+    [isReady, user]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+}

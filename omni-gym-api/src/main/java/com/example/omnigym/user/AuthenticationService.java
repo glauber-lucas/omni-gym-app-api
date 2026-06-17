@@ -57,11 +57,14 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(dto.senha()));
         
         Role targetRole = Role.ROLE_ALUNO;
-        if (dto.role() != null && "INSTRUTOR".equalsIgnoreCase(dto.role())) {
+        String requestedRole = dto.role() != null ? dto.role().trim().toUpperCase() : null;
+        if ("INSTRUTOR".equals(requestedRole) || "ROLE_INSTRUTOR".equals(requestedRole)) {
             if (dto.instructorSecret() == null || !instructorTokenSecret.equals(dto.instructorSecret())) {
                 throw new IllegalArgumentException("Token de registro de instrutor inválido ou ausente.");
             }
             targetRole = Role.ROLE_INSTRUTOR;
+        } else if ("ALUNO".equals(requestedRole) || "ROLE_ALUNO".equals(requestedRole)) {
+            targetRole = Role.ROLE_ALUNO;
         }
         user.setRole(targetRole);
 
@@ -111,4 +114,3 @@ public class AuthenticationService {
         return tokenService.getUsernameFromToken(token);
     }
 }
-
