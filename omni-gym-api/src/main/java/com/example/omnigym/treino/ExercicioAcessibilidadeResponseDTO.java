@@ -10,5 +10,6 @@ public record ExercicioAcessibilidadeResponseDTO(
     String statusAcessibilidade,
     String acessorioNecessario,
     String instrucaoAdaptacao,
-    List<String> exigenciasArticulares
+    List<String> exigenciasArticulares,
+    String imagemUrl
 ) {}

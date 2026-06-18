@@ -237,7 +237,8 @@ public class FichaTreinoService {
                         res.status().name(),
                         res.acessorio() != null ? res.acessorio().getNome() : null,
                         res.instrucaoTexto(),
-                        exigencias
+                        exigencias,
+                        ex.getImagemUrl()
                     );
                 })
                 .collect(Collectors.toList());

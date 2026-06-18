@@ -34,13 +34,16 @@ export type Enrollment = {
 };
 
 export type Exercise = {
-  id: number;
+  id?: number;
+  exercicioId?: number;
   nome: string;
   grupoMuscular: string;
   estacaoTrabalho: string;
   estabilidadeTroncoMinima?: string;
   exigencias?: string[];
+  exigenciasArticulares?: string[];
   adaptacoes?: Array<{ id: number; articulacao: string; acessorio: string; instrucaoTexto: string }>;
+  imagemUrl?: string;
 };
 
 export type WorkoutExercise = {

@@ -47,6 +47,7 @@ export type Exercise = {
   estabilidadeTroncoMinima?: string;
   exigencias?: string[];
   adaptacoes?: Array<{ id: number; articulacao: string; acessorio: string; instrucaoTexto: string }>;
+  imagemUrl?: string;
 };
 
 export type WorkoutExercisePayload = {

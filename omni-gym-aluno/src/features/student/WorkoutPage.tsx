@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Activity, Plus, Save, Trash2 } from 'lucide-react';
+import { Activity, Eye, Plus, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { WorkoutExercise } from '@/services/api/contracts';
 import { studentApi } from '@/services/api/studentApi';
@@ -15,6 +15,7 @@ export function WorkoutPage() {
   const [name, setName] = useState('Ficha ativa');
   const [items, setItems] = useState<WorkoutExercise[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ title: string; imageUrl: string } | null>(null);
 
   useEffect(() => {
     if (workout.data) {
@@ -33,7 +34,7 @@ export function WorkoutPage() {
   });
 
   function addExercise(exercicioId: number) {
-    const exercise = exercises.data?.find(item => item.id === exercicioId);
+    const exercise = exercises.data?.find(item => (item.id ?? item.exercicioId) === exercicioId);
     setItems(current => [
       ...current,
       {
@@ -135,22 +136,96 @@ export function WorkoutPage() {
             </div>
           </div>
           <div className="mt-4 space-y-3">
-            {(exercises.data ?? []).map(exercise => (
-              <div key={exercise.id} className="rounded-2xl border border-slate-100 bg-white/90 p-3 shadow-sm">
-                <p className="font-black text-ink-100">{exercise.nome}</p>
-                <p className="muted">
-                  {exercise.grupoMuscular} · {exercise.estacaoTrabalho}
-                </p>
-                <Button className="mt-3 w-full justify-center" variant="ghost" type="button" onClick={() => addExercise(exercise.id)}>
-                  <Plus size={16} />
-                  Adicionar
-                </Button>
-              </div>
-            ))}
+            {(exercises.data ?? []).map(exercise => {
+              const exerciseId = exercise.id ?? exercise.exercicioId;
+
+              return (
+                <div key={exerciseId ?? exercise.nome} className="relative rounded-2xl border border-slate-100 bg-white/90 p-3 shadow-sm">
+                  {exercise.imagemUrl && (
+                    <button
+                      className="icon-button absolute right-3 top-3"
+                      type="button"
+                      onClick={() => setSelectedImage({ title: exercise.nome, imageUrl: exercise.imagemUrl! })}
+                      aria-label={`Ver imagem de ${exercise.nome}`}
+                    >
+                      <Eye size={16} />
+                    </button>
+                  )}
+                  <p className="pr-12 font-black text-ink-100">{exercise.nome}</p>
+                  <p className="muted">
+                    {exercise.grupoMuscular} · {exercise.estacaoTrabalho}
+                  </p>
+                  <Button
+                    className="mt-3 w-full justify-center"
+                    variant="ghost"
+                    type="button"
+                    onClick={() => exerciseId && addExercise(exerciseId)}
+                    disabled={!exerciseId}
+                  >
+                    <Plus size={16} />
+                    Adicionar
+                  </Button>
+                </div>
+              );
+            })}
             {!exercises.data?.length && <EmptyState title="Nenhum exercício disponível." />}
           </div>
         </aside>
       </section>
+      <ExerciseImageDialog image={selectedImage} onClose={() => setSelectedImage(null)} />
+    </div>
+  );
+}
+
+function ExerciseImageDialog({ image, onClose }: { image: { title: string; imageUrl: string } | null; onClose: () => void }) {
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!image) return;
+
+    let cancelled = false;
+    let nextObjectUrl: string | null = null;
+
+    setObjectUrl(null);
+    setHasError(false);
+
+    studentApi
+      .exerciseImage(image.imageUrl)
+      .then(blob => {
+        if (cancelled) return;
+        nextObjectUrl = URL.createObjectURL(blob);
+        setObjectUrl(nextObjectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true);
+      });
+
+    return () => {
+      cancelled = true;
+      if (nextObjectUrl) {
+        URL.revokeObjectURL(nextObjectUrl);
+      }
+    };
+  }, [image]);
+
+  if (!image) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="w-full max-w-4xl rounded-[1.75rem] border border-white/70 bg-white p-4 shadow-soft">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="section-title">{image.title}</h3>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar imagem">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="flex min-h-64 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+          {objectUrl && <img className="max-h-[70vh] w-full object-contain" src={objectUrl} alt={`Imagem de ${image.title}`} />}
+          {!objectUrl && !hasError && <p className="muted p-6">Carregando imagem...</p>}
+          {hasError && <p className="muted p-6">Não foi possível carregar a imagem.</p>}
+        </div>
+      </div>
     </div>
   );
 }

@@ -75,8 +75,22 @@ export const instructorApi = {
     estabilidadeTroncoMinima: string;
     exigenciasIds: number[];
     adaptacoes: Array<{ articulacaoId: number; acessorioId: number; instrucaoTexto: string }>;
+    imagem?: File | null;
   }) {
-    const { data } = await api.post<Exercise>('/exercicios', payload);
+    const { imagem, ...exercisePayload } = payload;
+
+    const { data: exercise } = await api.post<Exercise>('/exercicios', exercisePayload);
+
+    if (!imagem) return exercise;
+
+    const formData = new FormData();
+    formData.append('imagem', imagem);
+
+    const { data } = await api.post<Exercise>(`/exercicios/${exercise.id}/imagem`, formData);
+    return data;
+  },
+  async exerciseImage(imageUrl: string) {
+    const { data } = await api.get<Blob>(imageUrl, { responseType: 'blob' });
     return data;
   },
   async articulations() {

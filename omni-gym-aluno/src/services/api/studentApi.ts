@@ -35,6 +35,10 @@ export const studentApi = {
     const { data } = await api.get<Exercise[]>('/aluno/treino/exercicios-disponiveis');
     return data;
   },
+  async exerciseImage(imageUrl: string) {
+    const { data } = await api.get<Blob>(imageUrl, { responseType: 'blob' });
+    return data;
+  },
   async editWorkout(payload: Workout) {
     const { data } = await api.put<Workout>('/aluno/treino/editar', payload);
     return data;
