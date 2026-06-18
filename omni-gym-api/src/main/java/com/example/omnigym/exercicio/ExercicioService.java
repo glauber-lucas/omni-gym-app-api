@@ -9,6 +9,18 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.example.omnigym.matricula.EstabilidadeTronco;
 
 @Service
@@ -18,6 +30,9 @@ public class ExercicioService {
     private final ExercicioAdaptacaoRepository adaptacaoRepository;
     private final ArticulacaoRepository articulacaoRepository;
     private final AcessorioRepository acessorioRepository;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public ExercicioService(ExercicioRepository exercicioRepository,
                             ExercicioAdaptacaoRepository adaptacaoRepository,
@@ -55,7 +70,8 @@ public class ExercicioService {
         exercicio.setEstacaoTrabalho(dto.estacaoTrabalho());
         exercicio.setEstabilidadeTroncoMinima(estabilidade);
         exercicio.setExigencias(exigencias);
-
+        exercicio.setImagemUrl(dto.imagemUrl());
+ 
         Exercicio savedExercicio = exercicioRepository.save(exercicio);
 
         List<ExercicioAdaptacao> savedAdaptacoes = new ArrayList<>();
@@ -78,6 +94,15 @@ public class ExercicioService {
         }
 
         return mapToResponseDTO(savedExercicio, savedAdaptacoes);
+    }
+
+    @Transactional
+    public ExercicioResponseDTO cadastrarExercicioComImagem(ExercicioDTO dto, MultipartFile imagem) throws IOException {
+        ExercicioResponseDTO response = cadastrarExercicio(dto);
+        if (imagem != null && !imagem.isEmpty()) {
+            return uploadImagem(response.id(), imagem);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -111,7 +136,8 @@ public class ExercicioService {
                 exercicio.getEstacaoTrabalho(),
                 exercicio.getEstabilidadeTroncoMinima() != null ? exercicio.getEstabilidadeTroncoMinima().name() : null,
                 exigencias,
-                adaptDetails
+                adaptDetails,
+                exercicio.getImagemUrl()
         );
     }
 
@@ -147,5 +173,84 @@ public class ExercicioService {
     @Transactional(readOnly = true)
     public List<Acessorio> listarAcessorios() {
         return acessorioRepository.findAll();
+    }
+
+    @Transactional
+    public ExercicioResponseDTO uploadImagem(Long id, MultipartFile imagem) throws IOException {
+        Exercicio exercicio = exercicioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Exercício não encontrado com ID: " + id));
+
+        if (imagem == null || imagem.isEmpty()) {
+            throw new IllegalArgumentException("A imagem não pode estar vazia.");
+        }
+
+        String contentType = imagem.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("O arquivo deve ser uma imagem válida (JPEG, PNG, etc.).");
+        }
+
+        // Criar diretório se não existir
+        Path dirPath = Paths.get(uploadDir, "exercicios");
+        if (!Files.exists(dirPath)) {
+            Files.createDirectories(dirPath);
+        }
+
+        // Salvar imagem no disco
+        String extensao = "";
+        String originalFilename = imagem.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extensao = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String nomeArquivo = "exercicio_" + id + "_" + System.currentTimeMillis() + extensao;
+        Path caminhoDestino = dirPath.resolve(nomeArquivo);
+
+        Files.write(caminhoDestino, imagem.getBytes());
+
+        // Atualizar URL e caminho
+        String downloadUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/exercicios/{id}/imagem")
+                .buildAndExpand(id)
+                .toUriString();
+
+        exercicio.setImagemUrl(downloadUrl);
+        exercicio.setImagemCaminho(caminhoDestino.toString());
+        Exercicio saved = exercicioRepository.save(exercicio);
+
+        List<ExercicioAdaptacao> adaps = adaptacaoRepository.findByExercicioId(id);
+        return mapToResponseDTO(saved, adaps);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<Resource> obterImagem(Long id) {
+        Exercicio exercicio = exercicioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Exercício não encontrado com ID: " + id));
+
+        String caminho = exercicio.getImagemCaminho();
+        if (caminho == null || caminho.isBlank()) {
+            throw new IllegalArgumentException("Exercício não possui imagem cadastrada.");
+        }
+
+        Path caminhoCompleto = Paths.get(caminho);
+        java.io.File arquivo = caminhoCompleto.toFile();
+
+        if (!arquivo.exists()) {
+            throw new IllegalStateException("Arquivo da imagem não encontrado no servidor.");
+        }
+
+        Resource resource = new FileSystemResource(arquivo);
+        String mimeType = null;
+        try {
+            mimeType = Files.probeContentType(caminhoCompleto);
+        } catch (IOException e) {
+            // ignorar
+        }
+        if (mimeType == null) {
+            mimeType = "image/jpeg";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + arquivo.getName() + "\"")
+                .body(resource);
     }
 }

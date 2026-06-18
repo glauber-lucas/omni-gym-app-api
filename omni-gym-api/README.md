@@ -46,7 +46,7 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 | **GET** | `/aluno/matricula` | `ROLE_ALUNO` | Obtém os dados de matrícula do próprio aluno logado |
 | **GET** | `/instrutor/matriculas` | `ROLE_INSTRUTOR` | Lista todas as matrículas cadastradas e seus status |
 | **GET** | `/instrutor/matriculas/pendentes` | `ROLE_INSTRUTOR` | Lista alunos com matrícula aguardando homologação |
-| **GET** | `/instrutor/matriculas/{alunoId}` | `ROLE_INSTRUTOR` | Exibe os detalhes cadastrais e biomecânicos de um aluno |
+| **GET** | `/instrutor/matriculas/{alunoId}` | `ROLE_INSTRUTOR` | Exibe os detalhes cadastrais (respostas do formulário preenchido pelo aluno) e biomecânicos de um aluno |
 | **POST** | `/instrutor/matriculas/{alunoId}/homologar` | `ROLE_INSTRUTOR` | Homologa a matrícula do aluno selecionado |
 | **POST** | `/instrutor/matriculas/{alunoId}/homologar-com-plano` | `ROLE_INSTRUTOR` | Homologa a matrícula e vincula um plano de assinatura simultaneamente |
 | **POST** | `/instrutor/alunos/{alunoId}/perfil-biomecanico` | `ROLE_INSTRUTOR` | Mapeia estabilidade de tronco e restrições articulares do aluno |
@@ -55,12 +55,21 @@ Backend do ecossistema digital **Omni Gym**, focado em acessibilidade biomecâni
 ### Catálogo de Exercícios, Articulações & Acessórios
 | Método | Endpoint | Perfil | Descrição |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/exercicios` | `ROLE_INSTRUTOR` | Cadastra um novo exercício no catálogo global |
+| **POST** | `/exercicios` | `ROLE_INSTRUTOR` | Cadastra um novo exercício (suporta JSON puro ou `multipart/form-data` para upload direto de imagem) |
 | **GET** | `/exercicios` | Qualquer Perfil | Lista todos os exercícios cadastrados no sistema |
+| **POST** | `/exercicios/{id}/imagem` | `ROLE_INSTRUTOR` | Faz upload de uma imagem representativa para um exercício existente |
+| **GET** | `/exercicios/{id}/imagem` | Qualquer Perfil | Retorna o arquivo da imagem do exercício para visualização |
 | **POST** | `/articulacoes` | `ROLE_INSTRUTOR` | Cadastra uma nova articulação biomecânica |
 | **GET** | `/articulacoes` | Qualquer Perfil | Lista todas as articulações biomecânicas |
 | **POST** | `/acessorios` | `ROLE_INSTRUTOR` | Cadastra um novo acessório assistivo de adaptação |
 | **GET** | `/acessorios` | Qualquer Perfil | Lista todos os acessórios assistivos cadastrados |
+
+> [!TIP]
+> O endpoint `POST /exercicios` aceita tanto JSON puro quanto `multipart/form-data`. Para realizar o cadastro e o upload da imagem em uma única chamada:
+> - **Content-Type**: `multipart/form-data`
+> - **Parte `exercicio`** (Content-Type: `application/json`): JSON contendo os dados do exercício (`ExercicioDTO`)
+> - **Parte `imagem`** (Opcional, arquivo): O arquivo de imagem (JPEG, PNG, etc.) a ser cadastrado para o exercício
+
 
 ### Fichas de Treino (`/treinos` e `/treino-diario`)
 | Método | Endpoint | Perfil | Descrição |

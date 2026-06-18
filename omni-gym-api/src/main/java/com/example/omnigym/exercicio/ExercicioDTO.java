@@ -21,5 +21,7 @@ public record ExercicioDTO(
         @NotEmpty(message = "O exercício deve possuir ao menos uma articulação exigida")
         List<Long> exigenciasIds,
 
-        List<ExercicioAdaptacaoDTO> adaptacoes
+        List<ExercicioAdaptacaoDTO> adaptacoes,
+
+        String imagemUrl
 ) {}

@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import java.io.IOException;
 import jakarta.validation.Valid;
 
 @RestController
@@ -21,10 +28,19 @@ public class ExercicioController {
         this.exercicioService = exercicioService;
     }
 
-    @PostMapping("/exercicios")
+    @PostMapping(value = "/exercicios", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('INSTRUTOR')")
-    public ResponseEntity<ExercicioResponseDTO> cadastrarExercicio(@Valid @RequestBody ExercicioDTO dto) {
+    public ResponseEntity<ExercicioResponseDTO> cadastrarExercicioJson(@Valid @RequestBody ExercicioDTO dto) {
         ExercicioResponseDTO response = exercicioService.cadastrarExercicio(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping(value = "/exercicios", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('INSTRUTOR')")
+    public ResponseEntity<ExercicioResponseDTO> cadastrarExercicioMultipart(
+            @RequestPart("exercicio") @Valid ExercicioDTO dto,
+            @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws IOException {
+        ExercicioResponseDTO response = exercicioService.cadastrarExercicioComImagem(dto, imagem);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -63,5 +79,20 @@ public class ExercicioController {
     public ResponseEntity<List<Acessorio>> listarAcessorios() {
         List<Acessorio> response = exercicioService.listarAcessorios();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/exercicios/{id}/imagem")
+    @PreAuthorize("hasRole('INSTRUTOR')")
+    public ResponseEntity<ExercicioResponseDTO> uploadImagem(
+            @PathVariable Long id,
+            @RequestParam("imagem") MultipartFile imagem) throws IOException {
+        ExercicioResponseDTO response = exercicioService.uploadImagem(id, imagem);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/exercicios/{id}/imagem")
+    @PreAuthorize("hasAnyRole('INSTRUTOR', 'ALUNO')")
+    public ResponseEntity<Resource> obterImagem(@PathVariable Long id) {
+        return exercicioService.obterImagem(id);
     }
 }

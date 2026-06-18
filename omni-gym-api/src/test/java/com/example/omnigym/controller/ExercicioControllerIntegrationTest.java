@@ -33,6 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,6 +60,9 @@ class ExercicioControllerIntegrationTest {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private ExercicioRepository exercicioRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -101,6 +107,7 @@ class ExercicioControllerIntegrationTest {
                 "Gaiola de Agachamento",
                 "PLENO",
                 List.of(joelho.getId()),
+                null,
                 null
         );
 
@@ -125,7 +132,8 @@ class ExercicioControllerIntegrationTest {
                 "Banco de Rosca",
                 "LIMITADO",
                 List.of(cotovelo.getId()),
-                List.of(adaptDTO)
+                List.of(adaptDTO),
+                null
         );
 
         mockMvc.perform(post("/exercicios")
@@ -143,6 +151,7 @@ class ExercicioControllerIntegrationTest {
                 "Esteira",
                 "PLENO",
                 List.of(), // Lista de exigências vazia
+                null,
                 null
         );
 
@@ -161,6 +170,7 @@ class ExercicioControllerIntegrationTest {
                 "Polia Alta",
                 "PLENO",
                 List.of(joelho.getId()),
+                null,
                 null
         );
 
@@ -238,5 +248,142 @@ class ExercicioControllerIntegrationTest {
         mockMvc.perform(get("/acessorios")
                         .header("Authorization", "Bearer " + tokenInstrutor))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void instrutorPodeUparImagemParaExercicioEAmbosPodemObter() throws Exception {
+        Exercicio exercicio = new Exercicio(
+                "Leg Press 45",
+                "Pernas",
+                "Leg Press",
+                EstabilidadeTronco.LIMITADO
+        );
+        exercicio.getExigencias().add(joelho);
+        exercicio = exercicioRepository.save(exercicio);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "imagem",
+                "legpress.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "leg press image dummy bytes".getBytes()
+        );
+
+        // Aluno não pode upar
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/exercicios/{id}/imagem", exercicio.getId())
+                        .file(file)
+                        .header("Authorization", "Bearer " + tokenAluno))
+                .andExpect(status().isForbidden());
+
+        // Instrutor pode upar
+        String responseContent = mockMvc.perform(MockMvcRequestBuilders.multipart("/exercicios/{id}/imagem", exercicio.getId())
+                        .file(file)
+                        .header("Authorization", "Bearer " + tokenInstrutor))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(responseContent).contains("/exercicios/" + exercicio.getId() + "/imagem");
+        assertThat(responseContent).contains("imagemUrl");
+
+        // Ambos podem baixar/visualizar a imagem
+        mockMvc.perform(get("/exercicios/{id}/imagem", exercicio.getId())
+                        .header("Authorization", "Bearer " + tokenAluno))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/exercicios/{id}/imagem", exercicio.getId())
+                        .header("Authorization", "Bearer " + tokenInstrutor))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void cadastrarExercicioMultipartComImagemComSucesso() throws Exception {
+        ExercicioDTO dto = new ExercicioDTO(
+                "Agachamento Hack",
+                "Pernas",
+                "Hack Machine",
+                "PLENO",
+                List.of(joelho.getId()),
+                null,
+                null
+        );
+
+        MockMultipartFile exercicioPart = new MockMultipartFile(
+                "exercicio",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(dto)
+        );
+
+        MockMultipartFile filePart = new MockMultipartFile(
+                "imagem",
+                "hack.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "hack machine image dummy bytes".getBytes()
+        );
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.multipart("/exercicios")
+                        .file(exercicioPart)
+                        .file(filePart)
+                        .header("Authorization", "Bearer " + tokenInstrutor))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(response).contains("Agachamento Hack");
+        assertThat(response).contains("/exercicios/");
+        assertThat(response).contains("/imagem");
+        assertThat(response).contains("imagemUrl");
+    }
+
+    @Test
+    void cadastrarExercicioMultipartSemImagemComSucesso() throws Exception {
+        ExercicioDTO dto = new ExercicioDTO(
+                "Flexao de Braco",
+                "Peito",
+                "Solo",
+                "LIMITADO",
+                List.of(cotovelo.getId()),
+                null,
+                null
+        );
+
+        MockMultipartFile exercicioPart = new MockMultipartFile(
+                "exercicio",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(dto)
+        );
+
+        String response = mockMvc.perform(MockMvcRequestBuilders.multipart("/exercicios")
+                        .file(exercicioPart)
+                        .header("Authorization", "Bearer " + tokenInstrutor))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(response).contains("Flexao de Braco");
+        assertThat(response).doesNotContain("/imagem");
+    }
+
+    @Test
+    void alunoNaoPodeCadastrarExercicioMultipart() throws Exception {
+        ExercicioDTO dto = new ExercicioDTO(
+                "Exercicio Invalido",
+                "Peito",
+                "Solo",
+                "LIMITADO",
+                List.of(cotovelo.getId()),
+                null,
+                null
+        );
+
+        MockMultipartFile exercicioPart = new MockMultipartFile(
+                "exercicio",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(dto)
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/exercicios")
+                        .file(exercicioPart)
+                        .header("Authorization", "Bearer " + tokenAluno))
+                .andExpect(status().isForbidden());
     }
 }

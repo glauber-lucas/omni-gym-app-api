@@ -9,7 +9,8 @@ public record ExercicioResponseDTO(
         String estacaoTrabalho,
         String estabilidadeTroncoMinima,
         List<String> exigencias,
-        List<AdaptacaoDetail> adaptacoes
+        List<AdaptacaoDetail> adaptacoes,
+        String imagemUrl
 ) {
     public record AdaptacaoDetail(
             Long id,

@@ -40,6 +40,12 @@ public class Exercicio {
     @Column(name = "estabilidade_tronco_minima", nullable = false)
     private EstabilidadeTronco estabilidadeTroncoMinima = EstabilidadeTronco.LIMITADO;
 
+    @Column(name = "imagem_url")
+    private String imagemUrl;
+
+    @Column(name = "imagem_caminho")
+    private String imagemCaminho;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "exercicio_exigencia",
@@ -103,6 +109,22 @@ public class Exercicio {
 
     public void setExigencias(Set<Articulacao> exigencias) {
         this.exigencias = exigencias;
+    }
+
+    public String getImagemUrl() {
+        return imagemUrl;
+    }
+
+    public void setImagemUrl(String imagemUrl) {
+        this.imagemUrl = imagemUrl;
+    }
+
+    public String getImagemCaminho() {
+        return imagemCaminho;
+    }
+
+    public void setImagemCaminho(String imagemCaminho) {
+        this.imagemCaminho = imagemCaminho;
     }
 
     @Override
