@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
-import { Activity, ArrowRight, ClipboardCheck, CreditCard, FileText, ShieldCheck } from 'lucide-react';
+import { Activity, ArrowRight, ClipboardCheck, FileText, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { studentApi } from '@/services/api/studentApi';
 import { currency } from '@/shared/utils/format';
@@ -14,9 +14,6 @@ export function DashboardPage() {
   });
 
   const invoiceList = invoices.data ?? [];
-  const pendingTotal = invoiceList
-    .filter(item => item.status !== 'PAGA')
-    .reduce((sum, item) => sum + Number(item.valorCobrado ?? item.valorOriginal ?? 0), 0);
 
   return (
     <div className="page-shell">
@@ -52,10 +49,9 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-3">
         <Metric icon={Activity} label="Exercícios do dia" value={workout.data?.exercicios?.length ?? 0} />
         <Metric icon={ClipboardCheck} label="Estabilidade" value={enrollment.data?.estabilidadeTronco ?? 'A definir'} />
-        <Metric icon={CreditCard} label="Total pendente" value={currency(pendingTotal)} />
         <Metric icon={FileText} label="Documentos" value="Upload seguro" />
       </section>
 
