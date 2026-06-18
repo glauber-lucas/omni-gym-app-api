@@ -1,6 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi } from '@/services/api/studentApi';
-import { tokenStore } from '@/services/api/client';
+import { AUTH_LOGOUT_EVENT, tokenStore } from '@/services/api/client';
 import type { User } from '@/services/api/contracts';
 
 type AuthContextValue = {
@@ -12,8 +13,19 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const EXPECTED_ROLE = 'ROLE_ALUNO';
+
+function ensureStudentAccess(user: User) {
+  if (user.role !== EXPECTED_ROLE) {
+    tokenStore.clear();
+    throw new Error('Esta conta não tem acesso ao portal do aluno.');
+  }
+
+  return user;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -25,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        setUser(await authApi.me());
+        setUser(ensureStudentAccess(await authApi.me()));
       } catch {
         tokenStore.clear();
       } finally {
@@ -36,13 +48,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void restore();
   }, []);
 
+  useEffect(() => {
+    function handleLogout() {
+      setUser(null);
+      queryClient.clear();
+    }
+
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleLogout);
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleLogout);
+  }, [queryClient]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isReady,
       async login(payload) {
         const response = await authApi.login(payload);
-        setUser(response.user ?? (await authApi.me()));
+        setUser(ensureStudentAccess(response.user ?? (await authApi.me())));
       },
       async register(payload) {
         await authApi.register(payload);
@@ -50,9 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout() {
         tokenStore.clear();
         setUser(null);
+        queryClient.clear();
       }
     }),
-    [isReady, user]
+    [isReady, queryClient, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

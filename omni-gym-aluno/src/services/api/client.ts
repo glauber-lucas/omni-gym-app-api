@@ -3,6 +3,19 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 const ACCESS_KEY = 'omniGymAluno.accessToken';
 const REFRESH_KEY = 'omniGymAluno.refreshToken';
+export const AUTH_LOGOUT_EVENT = 'omniGymAluno.authLogout';
+
+let refreshPromise: Promise<string> | null = null;
+
+function isAuthRequest(url?: string) {
+  return Boolean(url && ['/auth/local', '/auth/login', '/auth/register', '/auth/refresh-token'].some(path => url.includes(path)));
+}
+
+function notifyLogout() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT));
+  }
+}
 
 export const tokenStore = {
   getAccess: () => localStorage.getItem(ACCESS_KEY),
@@ -14,8 +27,31 @@ export const tokenStore = {
   clear() {
     localStorage.removeItem(ACCESS_KEY);
     localStorage.removeItem(REFRESH_KEY);
+    notifyLogout();
   }
 };
+
+function refreshAccessToken(refreshToken: string) {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken })
+      .then(response => {
+        const access = response.data.jwt ?? response.data.token;
+
+        if (!access) {
+          throw new Error('Resposta de renovação de sessão inválida.');
+        }
+
+        tokenStore.set(access, response.data.refreshToken);
+        return access;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
 
 export const api = axios.create({
   baseURL: API_BASE_URL
@@ -34,17 +70,23 @@ api.interceptors.response.use(
   async error => {
     const original = error.config;
     const refreshToken = tokenStore.getRefresh();
+    const isAuth = isAuthRequest(original?.url);
 
-    if (error.response?.status === 401 && refreshToken && !original?._retry) {
+    if (error.response?.status === 401 && refreshToken && original && !original._retry && !isAuth) {
       original._retry = true;
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken });
-      const access = response.data.jwt ?? response.data.token;
-      tokenStore.set(access, response.data.refreshToken);
-      original.headers.Authorization = `Bearer ${access}`;
-      return api(original);
+
+      try {
+        const access = await refreshAccessToken(refreshToken);
+        original.headers = original.headers ?? {};
+        original.headers.Authorization = `Bearer ${access}`;
+        return api(original);
+      } catch (refreshError) {
+        tokenStore.clear();
+        return Promise.reject(refreshError);
+      }
     }
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuth) {
       tokenStore.clear();
     }
 

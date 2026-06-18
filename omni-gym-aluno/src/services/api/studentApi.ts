@@ -3,10 +3,20 @@ import type { AuthResponse, Enrollment, Exercise, Invoice, MedicalDocument, Paym
 
 const tokenFrom = (data: AuthResponse) => data.jwt ?? data.token ?? '';
 
+function persistAuthTokens(data: AuthResponse) {
+  const accessToken = tokenFrom(data);
+
+  if (!accessToken) {
+    throw new Error('Resposta de login inválida.');
+  }
+
+  tokenStore.set(accessToken, data.refreshToken);
+}
+
 export const authApi = {
   async login(payload: { identifier: string; password: string }) {
     const { data } = await api.post<AuthResponse>('/auth/local', payload);
-    tokenStore.set(tokenFrom(data), data.refreshToken);
+    persistAuthTokens(data);
     return data;
   },
   async register(payload: { usuario: string; senha: string }) {

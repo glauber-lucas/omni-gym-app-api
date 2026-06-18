@@ -69,14 +69,16 @@ public class AuthenticationController {
         Long userId = null;
         String documentId = null;
         String email = null;
+        String role = null;
         try {
             User user = authenticationService.getUserByUsername(identifier);
             userId = user.getId();
             documentId = user.getDocumentId();
             email = user.getUsername();
+            role = user.getRole().name();
         } catch (Exception ignored) {}
 
-        LoginUserDTO userDto = new LoginUserDTO(userId, documentId, email);
+        LoginUserDTO userDto = new LoginUserDTO(userId, documentId, email, role);
 
         var body = java.util.Map.of(
                 "jwt", response.token(),
@@ -124,7 +126,7 @@ public class AuthenticationController {
         String username = authenticationService.getUsernameFromToken(newToken);
         User user = authenticationService.getUserByUsername(username);
 
-        LoginUserDTO userDto = new LoginUserDTO(user.getId(), user.getDocumentId(), user.getUsername());
+        LoginUserDTO userDto = new LoginUserDTO(user.getId(), user.getDocumentId(), user.getUsername(), user.getRole().name());
 
         String newRefreshToken = authenticationService.generateRefreshTokenForUser(user);
 
@@ -146,8 +148,7 @@ public class AuthenticationController {
 
         String username = auth.getName();
         User user = authenticationService.getUserByUsername(username);
-        MeUserDTO dto = new MeUserDTO(user.getId(), user.getDocumentId(), user.getName());
+        MeUserDTO dto = new MeUserDTO(user.getId(), user.getDocumentId(), user.getName(), user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(dto);
     }
 }
-

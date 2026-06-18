@@ -8,5 +8,4 @@ import com.example.omnigym.exercicio.*;
 import com.example.omnigym.treino.*;
 import com.example.omnigym.clinico.*;
 
-public record LoginUserDTO(Long id, String documentId, String email) {}
-
+public record LoginUserDTO(Long id, String documentId, String email, String role) {}
