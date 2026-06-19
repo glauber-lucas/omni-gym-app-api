@@ -24,7 +24,7 @@ const emptyExercise = (): ExerciseFormState => ({
   nome: '',
   grupoMuscular: '',
   estacaoTrabalho: '',
-  estabilidadeTroncoMinima: 'INDEPENDENTE',
+  estabilidadeTroncoMinima: 'PLENO',
   exigenciasIds: [],
   adaptacaoArticulacaoId: '',
   adaptacaoAcessorioId: '',
@@ -220,9 +220,9 @@ export function CatalogPage() {
           <label className="grid gap-1.5">
             <span className="label">Estabilidade mínima</span>
             <select className="input" value={exercise.estabilidadeTroncoMinima} onChange={event => setExercise({ ...exercise, estabilidadeTroncoMinima: event.target.value })}>
-              <option value="INDEPENDENTE">Independente</option>
+              <option value="PLENO">Independente</option>
               <option value="PARCIAL">Parcial</option>
-              <option value="DEPENDENTE">Dependente</option>
+              <option value="LIMITADO">Dependente</option>
             </select>
           </label>
           <div>

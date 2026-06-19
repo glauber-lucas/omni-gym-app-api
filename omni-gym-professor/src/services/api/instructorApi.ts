@@ -146,6 +146,10 @@ export const instructorApi = {
     const { data } = await api.get<AuditRecord[]>(`/instrutor/documentos/${documentoId}/historico-acesso`);
     return data;
   },
+  async documentFile(documentoId: number) {
+    const { data } = await api.get<Blob>(`/api/documentos/${documentoId}/download`, { responseType: 'blob' });
+    return data;
+  },
   async deleteDocument(documentoId: number) {
     await api.delete(`/documentos/${documentoId}`);
   },

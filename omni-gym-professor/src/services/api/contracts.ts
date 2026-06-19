@@ -96,7 +96,11 @@ export type MedicalDocument = {
   id: number;
   tipo: string;
   descricao?: string;
+  mimeType?: string;
+  tamanhoBytes?: number;
   dataUpload?: string;
+  dataProximaReavaliacao?: string;
+  criadoPor?: string;
   acessosCount?: number;
   downloadUrl?: string;
   ativo?: boolean;

@@ -1,6 +1,7 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Eye, FilePlus2, FileText, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Download, Eye, FilePlus2, FileText, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { MedicalDocument } from '@/services/api/contracts';
 import { instructorApi } from '@/services/api/instructorApi';
 import { Button } from '@/shared/components/Button';
 import { EmptyState } from '@/shared/components/EmptyState';
@@ -8,6 +9,41 @@ import { Field, Textarea } from '@/shared/components/Field';
 import { apiError, date } from '@/shared/utils/format';
 
 const documentTypes = ['', 'LAUDO_MEDICO', 'EXAME_DIAGNOSTICO', 'PARECER_CLINICO', 'RELATORIO_FISIOTERAPIA', 'RECEITA_MEDICA', 'ATESTADO', 'OUTRO'];
+
+type DocumentPreview = {
+  title: string;
+  objectUrl: string;
+  mimeType: string;
+};
+
+function canPreviewDocument(mimeType?: string) {
+  return Boolean(mimeType && (mimeType === 'application/pdf' || mimeType.startsWith('image/')));
+}
+
+function documentTitle(documento: MedicalDocument) {
+  return `${documento.tipo.replaceAll('_', ' ')} #${documento.id}`;
+}
+
+function extensionFromMimeType(mimeType?: string) {
+  if (mimeType === 'application/pdf') return '.pdf';
+  if (mimeType === 'image/jpeg') return '.jpg';
+  if (mimeType === 'image/png') return '.png';
+  if (mimeType === 'image/tiff') return '.tiff';
+  if (mimeType === 'application/msword') return '.doc';
+  if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return '.docx';
+  return '';
+}
+
+function saveBlob(blob: Blob, documento: MedicalDocument) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = `documento-${documento.id}${extensionFromMimeType(documento.mimeType || blob.type)}`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+}
 
 export function ClinicalPage() {
   const queryClient = useQueryClient();
@@ -17,6 +53,7 @@ export function ClinicalPage() {
   const [alunoId, setAlunoId] = useState('');
   const [tipo, setTipo] = useState('');
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
+  const [preview, setPreview] = useState<DocumentPreview | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [record, setRecord] = useState({
     laudoMedicoUrl: '',
@@ -43,6 +80,12 @@ export function ClinicalPage() {
     enabled: Boolean(selectedDocumentId)
   });
 
+  useEffect(() => {
+    return () => {
+      if (preview?.objectUrl) URL.revokeObjectURL(preview.objectUrl);
+    };
+  }, [preview?.objectUrl]);
+
   const createRecord = useMutation({
     mutationFn: () => {
       if (!alunoId) throw new Error('Selecione um aluno.');
@@ -62,6 +105,38 @@ export function ClinicalPage() {
       setMessage('Documento removido.');
       await queryClient.invalidateQueries({ queryKey: ['instructor', 'documents'] });
     },
+    onError: error => setMessage(apiError(error))
+  });
+
+  const previewDocument = useMutation({
+    mutationFn: async (documento: MedicalDocument) => {
+      if (!canPreviewDocument(documento.mimeType)) {
+        throw new Error('Pré-visualização disponível apenas para PDF e imagens.');
+      }
+
+      const blob = await instructorApi.documentFile(documento.id);
+      const mimeType = blob.type || documento.mimeType || '';
+
+      if (!canPreviewDocument(mimeType)) {
+        throw new Error('Pré-visualização disponível apenas para PDF e imagens.');
+      }
+
+      return {
+        title: documentTitle(documento),
+        objectUrl: URL.createObjectURL(blob),
+        mimeType
+      };
+    },
+    onSuccess: nextPreview => setPreview(nextPreview),
+    onError: error => setMessage(apiError(error))
+  });
+
+  const downloadDocument = useMutation({
+    mutationFn: async (documento: MedicalDocument) => ({
+      documento,
+      blob: await instructorApi.documentFile(documento.id)
+    }),
+    onSuccess: ({ blob, documento }) => saveBlob(blob, documento),
     onError: error => setMessage(apiError(error))
   });
 
@@ -155,11 +230,14 @@ export function ClinicalPage() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <a className="icon-button" href={instructorApi.documentDownloadUrl(document.id)} target="_blank" rel="noreferrer" aria-label="Baixar documento">
-                      <Download size={16} />
-                    </a>
-                    <button className="icon-button" onClick={() => setSelectedDocumentId(document.id)} aria-label="Ver auditoria">
+                    <button className="icon-button" onClick={() => previewDocument.mutate(document)} aria-label="Visualizar documento" disabled={previewDocument.isPending}>
                       <Eye size={16} />
+                    </button>
+                    <button className="icon-button" onClick={() => downloadDocument.mutate(document)} aria-label="Baixar documento" disabled={downloadDocument.isPending}>
+                      <Download size={16} />
+                    </button>
+                    <button className="icon-button" onClick={() => setSelectedDocumentId(document.id)} aria-label="Ver auditoria">
+                      <FileText size={16} />
                     </button>
                     <button className="icon-button" onClick={() => removeDocument.mutate(document.id)} aria-label="Excluir documento">
                       <Trash2 size={16} />
@@ -203,6 +281,32 @@ export function ClinicalPage() {
           </section>
         </div>
       </section>
+      <DocumentPreviewDialog preview={preview} onClose={() => setPreview(null)} />
+    </div>
+  );
+}
+
+function DocumentPreviewDialog({ preview, onClose }: { preview: DocumentPreview | null; onClose: () => void }) {
+  if (!preview) return null;
+
+  const isPdf = preview.mimeType === 'application/pdf';
+  const isImage = preview.mimeType.startsWith('image/');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="w-full max-w-5xl rounded-[1.75rem] border border-white/70 bg-white p-4 shadow-soft">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="section-title">{preview.title}</h3>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Fechar visualização">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="flex h-[72vh] min-h-80 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+          {isPdf && <iframe className="h-full w-full" src={preview.objectUrl} title={preview.title} />}
+          {isImage && <img className="max-h-full w-full object-contain" src={preview.objectUrl} alt={preview.title} />}
+          {!isPdf && !isImage && <p className="muted p-6">Este formato não possui pré-visualização no navegador.</p>}
+        </div>
+      </div>
     </div>
   );
 }

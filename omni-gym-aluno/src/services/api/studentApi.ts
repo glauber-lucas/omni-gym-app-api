@@ -79,6 +79,10 @@ export const studentApi = {
   async deleteDocument(documentoId: number) {
     await api.delete(`/documentos/${documentoId}`);
   },
+  async documentFile(documentoId: number) {
+    const { data } = await api.get<Blob>(`/api/documentos/${documentoId}/download`, { responseType: 'blob' });
+    return data;
+  },
   documentDownloadUrl(documentoId: number) {
     return `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'}/api/documentos/${documentoId}/download`;
   }

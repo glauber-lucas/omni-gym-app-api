@@ -19,7 +19,7 @@ export function StudentsPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<StudentProfile | null>(null);
   const [planoId, setPlanoId] = useState('');
-  const [estabilidade, setEstabilidade] = useState('INDEPENDENTE');
+  const [estabilidade, setEstabilidade] = useState('PLENO');
   const [restricoesIds, setRestricoesIds] = useState<number[]>([]);
   const [bloqueioMedico, setBloqueioMedico] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -162,9 +162,9 @@ export function StudentsPage() {
           <label className="grid gap-1.5">
             <span className="label">Estabilidade de tronco</span>
             <select className="input" value={estabilidade} onChange={event => setEstabilidade(event.target.value)}>
-              <option value="INDEPENDENTE">Independente</option>
+              <option value="PLENO">Independente</option>
               <option value="PARCIAL">Parcial</option>
-              <option value="DEPENDENTE">Dependente</option>
+              <option value="LIMITADO">Dependente</option>
             </select>
           </label>
 
